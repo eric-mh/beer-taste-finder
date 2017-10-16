@@ -8,6 +8,12 @@ from numpy import in1d
 import unittest as unittest
 import src
 
+def load_txt(filename):
+    file_object = file(filename)
+    txtstring = file_object.read()
+    file_object.close()
+    return txtstring
+
 class TestPreprocessing(unittest.TestCase):
     def assert_equal_array(self, actual, expected):
         for a_row, e_row in zip(actual, expected):
@@ -24,9 +30,19 @@ class TestPreprocessing(unittest.TestCase):
     def test_pipeline(self):
         pass
 
-    @unittest.skip("tokenizer unimplemented")
-    def test_tokenizer(self):
-        pass
+    def test_spacy_tokenizer(self):
+        from spacy import load, attrs
+        parser = load('en')
+        txt_document = unicode(load_txt('tests/test_document.txt'))
+        word_count = 16
+        txt_corpus = [txt_document, txt_document]
+        
+        tokenizer = src.preprocessing.doc_tokenizer()
+        self.assertTrue(tokenizer.transform(txt_corpus))
+        
+        result = tokenizer.transform(txt_corpus)
+        self.assertEqual(result[0].shape[0], word_count)
+        self.assertTrue(allequal(result[0], result[1]))
 
     def test_filter_fit(self):
         X = array([arange(10), arange(13)])
