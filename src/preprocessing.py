@@ -5,7 +5,7 @@ the beer data in this project.
 Every preprocessor class mimics the self.fit, self.fit_transform and self.transform
 behavior as if they adhered to sklearn conventions.
 """
-from numpy import array, in1d
+from numpy import array, hstack, in1d
 # from spacy import load
 # parser = load('en_core_web_md')
 
@@ -38,7 +38,7 @@ class token_filter():
     -----------
         exclude : List, optional
             A list of tokens to exclude from the start
-        exclude_f : Lambda Function, optional
+        exclude_f : Lambda Function F(X, y), optional
             A function that is called during self.fit to expand the exclusion set. """
 
     def __init__(self, exclude = [], exclude_f = None):
@@ -58,7 +58,10 @@ class token_filter():
         return row[~in1d(row, self._exclude)]
 
     def fit(self, X, y = None):
-        pass # wt
+        """ Update the exclusion list with the included function, if there is one. """
+        if self._exclude_f:
+            self._exclude = hstack((self._exclude, self._exclude_f(X, y)))
+        return self
 
     def transform(self, X):
         """ Transforms a matrix of tokenized documents into a reduced set.
@@ -75,7 +78,8 @@ class token_filter():
         return array(collector)
 
     def fit_transform(self, X, y = None):
-        pass
+        self.fit(X, y)
+        return self.transform(X)
 
 class token_vectorizer():
     """ DOC """ # DOC

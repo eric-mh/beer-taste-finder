@@ -47,6 +47,11 @@ class TestPreprocessing(unittest.TestCase):
         actual = filter.transform(X)
         self.assert_equal_array(actual, expected)
 
+        # Assert fit_transform also works
+        filter = src.preprocessing.token_filter(exclude = [], exclude_f = b_func)
+        actual = filter.fit_transform(X, y)
+        self.assert_equal_array(actual, expected)
+
     def test_filter_transform(self):
         X = array([arange(10),
                    arange(10),
