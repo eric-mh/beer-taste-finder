@@ -5,7 +5,8 @@ the beer data in this project.
 Every preprocessor class mimics the self.fit, self.fit_transform and self.transform
 behavior as if they adhered to sklearn conventions.
 """
-from numpy import array, hstack, in1d
+from numpy import array, hstack
+from numpy import min, in1d
 
 class doc_tokenizer():
     """ The document tokenizer takes a corpus and tokenizes every document into
@@ -37,7 +38,7 @@ class doc_tokenizer():
         OUTPUTS:
         --------
             vector : N, shape numpy array. """
-        pass
+        return matrix[min(matrix[:,1::], axis = 1) == 1][:,0]
 
     def fit(self, X, y = None):
         return self
@@ -55,6 +56,8 @@ class doc_tokenizer():
 
         for document in corpus:
             collector.append(self._vectorize_s_matrix(document.to_array(self.ar_args)))
+
+        return collector
 
     def fit_transform(self, X, y = None):
         return self.transform(X)
