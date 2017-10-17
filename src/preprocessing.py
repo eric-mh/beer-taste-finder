@@ -157,7 +157,7 @@ class token_vectorizer():
     def fit_transform(self, X, y = None):
         return self.vec.fit_transform(X, y).toarray()
 
-class mfe_token_preprocessor():
+class tem_token_preprocessor():
     """ A preprocessor that further reduces the number of tokens by removing
     'Inefficient' ones. Calculates efficiency using a metric function.
     PARAMETERS:
@@ -171,7 +171,7 @@ class mfe_token_preprocessor():
         if metric:
             self.metric = metric
         else:
-            self.metric = mfe_metric()
+            self.metric = tem_metric()
         self.threshold = threshold
         self.metric_msk = None
 
@@ -186,7 +186,7 @@ class mfe_token_preprocessor():
     def fit_transform(self, X, y = None):
         pass
 
-class mfe_metric():
+class tem_metric():
     """ The model efficiency metric, calculates the 'scores' of each individual token
     when given a corpus of tokens. """
     def __init__(self):

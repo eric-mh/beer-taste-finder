@@ -26,7 +26,7 @@ class TestPreprocessing(unittest.TestCase):
         self.assertTrue(src.preprocessing.doc_tokenizer)
         self.assertTrue(src.preprocessing.token_filter)
         self.assertTrue(src.preprocessing.token_vectorizer)
-        self.assertTrue(src.preprocessing.mfe_token_preprocessor)
+        self.assertTrue(src.preprocessing.tem_token_preprocessor)
 
     @unittest.skip("preprocessor pipeline incomplete")
     def test_pipeline(self):
@@ -114,11 +114,11 @@ class TestPreprocessing(unittest.TestCase):
         self.assertEqual(actual_old[1].sum(), expected_counts_o2)
         self.assertEqual(actual_new.sum(), expected_counts_new)
 
-    def test_mfe_preprocessor(self):
+    def test_tem_preprocessor(self):
         test_tokens = array([[1,1,1,1,1,2,2,2,2,2,3,3,3,4],
                              [1,2,4,5]])
         test_unseen = array([[1,2,4,5]])
-        test_metric = src.preprocessing.mfe_metric()
+        test_metric = src.preprocessing.tem_metric()
         test_metric._metric = lambda X, y = None: X.sum(axis = 0) >= 3
 
         expected_new = array([[1,1,1,1,1,2,2,2,2,2,3,3,3],
@@ -126,7 +126,7 @@ class TestPreprocessing(unittest.TestCase):
         expected_unseen = array([[1,2]])
         test_threshold = 0.5
 
-        preprocessor = src.preprocessing.mfe_token_preprocessor(test_threshold,
+        preprocessor = src.preprocessing.tem_token_preprocessor(test_threshold,
                                                                 test_metric)
 
         actual_new = preprocessor.fit_transform(test_tokens)
@@ -138,5 +138,8 @@ class TestPreprocessing(unittest.TestCase):
     def test_metric_basic(self):
         test_tokens = array([[1,1,1,1,1,2,2,2,2,2,3,3,3,4],
                              [1,2,4,5]])
-        test_metric = src.preprocessing.mfe_metric()
-        self.assertEqual(test_metric.produce_mask(test_tokens).sum(), 3)
+        test_metric = src.preprocessing.tem_metric()
+        test_metric._metric = lambda X, y = None: X.sum(axis = 0) >= 3
+
+        token_scores = test_metric.score_tokens(test_tokens)
+        self.assertEqual(token_scores[1].sum(), 3)
