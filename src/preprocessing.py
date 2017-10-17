@@ -6,6 +6,7 @@ Every preprocessor class mimics the self.fit, self.fit_transform and self.transf
 behavior as if they adhered to sklearn conventions.
 """
 from numpy import array, hstack, min, in1d
+from numpy.random import randint
 from spacy import load, attrs
 from sklearn.feature_extraction import text
 
@@ -147,7 +148,31 @@ class token_vectorizer():
     def fit_transform(self, X, y = None):
         return self.vec.fit_transform(X, y)
 
-class mfe_metric():
-    """ DOC """ # DOC
-    def __init__(self):
+class mfe_preprocessor():
+    """ A preprocessor that further reduces the number of features by removing
+    'Inefficient' ones. Calculates efficiency using the count vectorizer and a metric.
+    PARAMETERS:
+    -----------
+        threshold : float, a cut-off threshold for the metric.
+        metric: Lambda Function(X, y), optional; a function that calculates a metric
+                for every feature. Expects a list output that is the positional metric
+                of every column. Defaults to a useless metric for testing."""
+    def __init__(self, threshold, metric = None):
+        self.vectorizer = token_vectorizer(use_tfidfs = False)
+        if metric:
+            self.metric = metric
+        else:
+            self.metric = mfe_metric
+        self.threshold = threshold
+
+    def fit(self, X, y = None):
         pass
+
+    def transform(self, X):
+        pass
+
+    def fit_transform(self, X, y = None):
+        pass
+
+def mfe_metric(X, y = None):
+    pass
