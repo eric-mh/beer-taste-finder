@@ -16,8 +16,8 @@ def load_txt(filename):
 
 class TestPreprocessing(unittest.TestCase):
     def assert_equal_array(self, actual, expected):
-        self.assertTrue(actual)
-        self.assertTrue(expected)
+        self.assertIsNotNone(actual)
+        self.assertIsNotNone(expected)
         for a_row, e_row in zip(actual, expected):
             self.assertTrue(allequal(a_row, e_row))
 
@@ -26,7 +26,7 @@ class TestPreprocessing(unittest.TestCase):
         self.assertTrue(src.preprocessing.doc_tokenizer)
         self.assertTrue(src.preprocessing.token_filter)
         self.assertTrue(src.preprocessing.token_vectorizer)
-        self.assertTrue(src.preprocessing.mfe_preprocessor)
+        self.assertTrue(src.preprocessing.mfe_token_preprocessor)
 
     @unittest.skip("preprocessor pipeline incomplete")
     def test_pipeline(self):
@@ -102,34 +102,41 @@ class TestPreprocessing(unittest.TestCase):
         corpus = array([[1,2,3,4],
                         [1,2,5]])
         new_corpus = array([[1,2,7,8]])
-        vectorizer = src.preprocessing.token_vectorizer()
+        vectorizer = src.preprocessing.token_vectorizer(use_tfidfs = False)
 
         expected_counts_o1 = 4
         expected_counts_o2 = 3
         expected_counts_new = 2
-        actual_old = vectorizer.fit_transform(corpus).toarray()
-        actual_new = vectorizer.transform(new_corpus).toarray()
+        actual_old = vectorizer.fit_transform(corpus)
+        actual_new = vectorizer.transform(new_corpus)
 
         self.assertEqual(actual_old[0].sum(), expected_counts_o1)
         self.assertEqual(actual_old[1].sum(), expected_counts_o2)
         self.assertEqual(actual_new.sum(), expected_counts_new)
 
     def test_mfe_preprocessor(self):
-        test_counts = array([[5,5,3,1,1,1],
-                             [6,1,0,1,1,0]])
-        test_unseen = array([[9,9,9,9,9,9]])
-        test_metric = lambda X, y: X.sum(axis = 0) >= 3
+        test_tokens = array([[1,1,1,1,1,2,2,2,2,2,3,3,3,4],
+                             [1,2,4,5]])
+        test_unseen = array([[1,2,4,5]])
+        test_metric = src.preprocessing.mfe_metric()
+        test_metric._metric = lambda X, y = None: X.sum(axis = 0) >= 3
+
+        expected_new = array([[1,1,1,1,1,2,2,2,2,2,3,3,3],
+                              [1,2]])
+        expected_unseen = array([[1,2]])
         test_threshold = 0.5
 
-        preprocessor = src.preprocessing.mfe_preprocessor(test_threshold,
-                                                          test_metric)
+        preprocessor = src.preprocessing.mfe_token_preprocessor(test_threshold,
+                                                                test_metric)
 
-        new_counts = preprocessor.fit_transform(test_counts)
-        unseen_counts = preprocessor.transform(test_unseen)
+        actual_new = preprocessor.fit_transform(test_tokens)
+        actual_unseen = preprocessor.transform(test_unseen)
 
-        self.assert_equal_array(new_counts, array([[5, 5, 3], [6, 1, 0]]))
-        self.assert_equal_array(unseen_counts, array([[9, 9, 9]]))
+        self.assert_equal_array(actual_new, expected_new)
+        self.assert_equal_array(actual_unseen, expected_unseen)
 
-    @unittest.skip("metric function unimplemented")
-    def test_metric(self):
-        pass
+    def test_metric_basic(self):
+        test_tokens = array([[1,1,1,1,1,2,2,2,2,2,3,3,3,4],
+                             [1,2,4,5]])
+        test_metric = src.preprocessing.mfe_metric()
+        self.assertEqual(test_metric.produce_mask(test_tokens).sum(), 3)
