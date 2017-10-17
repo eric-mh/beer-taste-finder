@@ -96,20 +96,21 @@ class TestPreprocessing(unittest.TestCase):
         actual = filter.transform(X)
         self.assert_equal_array(actual, expected)
 
-    @unittest.skip("vectorizer unimplemented")
     def test_vectorizer(self):
         corpus = array([[1,2,3,4],
-                        [1,2,5,6]])
+                        [1,2,5]])
         new_corpus = array([[1,2,7,8]])
-        vectorizer = src.preprocessing.token_vectorizer("counts")
+        vectorizer = src.preprocessing.token_vectorizer()
 
-        expected_old = array([2,2,1,1,1,1])
-        expected_new = array([1,1,0,0,0,0])
-        actual_old = vectorizer.fit_transform(corpus)
-        actual_new = vectorizer.transform(new_corpus)
+        expected_counts_o1 = 4
+        expected_counts_o2 = 3
+        expected_counts_new = 2
+        actual_old = vectorizer.fit_transform(corpus).toarray()
+        actual_new = vectorizer.transform(new_corpus).toarray()
 
-        self.assert_equal_array(sorted(actual_old), sorted(expected_old))
-        self.assert_equal_array(sorted(actual_new), sorted(expected_new))
+        self.assertEqual(actual_old[0].sum(), expected_counts_o1)
+        self.assertEqual(actual_old[1].sum(), expected_counts_o2)
+        self.assertEqual(actual_new.sum(), expected_counts_new)
 
     @unittest.skip("metric function unimplemented")
     def test_metric(self):
