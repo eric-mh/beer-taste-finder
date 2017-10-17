@@ -5,8 +5,10 @@ the beer data in this project.
 Every preprocessor class mimics the self.fit, self.fit_transform and self.transform
 behavior as if they adhered to sklearn conventions.
 """
-from numpy import array, hstack
-from numpy import min, in1d
+from numpy import array, hstack, min, in1d
+from spacy import load, attrs
+from sklearn.feature_extraction import text
+
 
 class doc_tokenizer():
     """ The document tokenizer takes a corpus and tokenizes every document into
@@ -17,7 +19,6 @@ class doc_tokenizer():
         n_threads: int, optional; number of threads to pass to parser.pipe
         testing: boolean, optional; flag if tokenizer is only being used in a test. """
     def __init__(self, batch_size = 1, n_threads = 1, testing = False):
-        from spacy import load, attrs
         if testing:
             self._parser = load('en')
         else:
@@ -113,9 +114,38 @@ class token_filter():
         return self.transform(X)
 
 class token_vectorizer():
-    """ DOC """ # DOC
-    def __init__(self):
-        pass
+    """ A wrapper for sklearn's text vectorizers that skip the built-in
+    preprocessing and tokenization steps.
+    PARAMETERS:
+    -----------
+        use_tfidfs: boolean, optional; use TfidfVectorizer if true. """
+    def __init__(self, use_tfidfs = False):
+        override = lambda x: x
+        if use_tfidfs:
+            self.vec = text.TfidfVectorizer(preprocessor = override,
+                                            tokenizer = override)
+        else:
+            self.vec = text.CountVectorizer(preprocessor = override,
+                                            tokenizer = override)
+
+    def fit(self, X, y = None):
+        """ Fit the vectorizer to a document. """
+        self.fit_transform(X, y)
+        return self
+
+    def transform(self, X):
+        """ Transform the document to a vector matrix. Will ignore any
+        volcabulary not seen during fitting.
+        INPUTS:
+        -------
+            X : the corpus; a list of documents where each is a list of tokens.
+        OUTPUTS:
+        --------
+            X, transformed: A sparse matrix with counts or TFIDFS. """
+        return self.vec.transform(X)
+
+    def fit_transform(self, X, y = None):
+        return self.vec.fit_transform(X, y)
 
 class mfe_metric():
     """ DOC """ # DOC
