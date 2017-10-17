@@ -74,35 +74,31 @@ class doc_tokenizer():
         return self.transform(X)
 
 class token_filter():
-    """ _token_filter removes everything inside of self.exclude. Can be initialized
+    """ token_filter removes everything inside of self._collection. Can be initialized
     with a starting set and a function to expand the list.
     PARAMETERS:
     -----------
-        exclude : List, optional
+        collection : List, optional
             A list of tokens to exclude from the start
-        exclude_f : Lambda Function F(X, y), optional
-            A function that is called during self.fit to expand the exclusion set. """
+        collect_func : Lambda Function F(X, y), optional
+            A function that is called during self.fit to expand the collection.
+        exclude : boolean, optional
+            Specify if token_filter should exclude items in the collection. """
 
-    def __init__(self, exclude = [], exclude_f = None):
-        self._exclude = array(exclude)
-        self._exclude_f = exclude_f
+    def __init__(self, collection = [], collect_func = None, exclude = True):
+        self._collection = array(collection)
+        self._collect_func = collect_func
 
-    def _filter_row(self, row):
-        """ Filters all items not in self.include out of a row
-            NOTE - Change the mask to switch include/exclude behavior.
-            INPUTS:
-            -------
-                row : a (N,) shape np array
-            OUTPUTS:
-            --------
-                row : a np row with specific items filtered out
-        """
-        return row[~in1d(row, self._exclude)]
+        if exclude:
+            self._filter = lambda row: row[~in1d(row, self._collection)]
+        else:
+            self._filter = lambda row: row[in1d(row, self._collection)]
 
     def fit(self, X, y = None):
         """ Update the exclusion list with the included function, if there is one. """
-        if self._exclude_f:
-            self._exclude = hstack((self._exclude, self._exclude_f(X, y)))
+        if self._collect_func:
+            self._collection = hstack((self._collection,
+                                       self._collect_func(X, y)))
         return self
 
     def transform(self, X):
@@ -116,7 +112,7 @@ class token_filter():
         """
         collector = [] # Inefficient
         for row in X:
-            collector.append(self._filter_row(row))
+            collector.append(self._filter(row))
         return array(collector)
 
     def fit_transform(self, X, y = None):
@@ -175,16 +171,23 @@ class tem_token_preprocessor():
         self.threshold = threshold
         self.metric_msk = None
 
-        self.excluder = token_filter
+        # Set something aside for the token filter later
+        self.excluder = None
 
     def fit(self, X, y = None):
-        pass
+        token_scores = self.metric.score_tokens(X, y)
+        token_mask = token_scores[1] >= self.threshold
+        self.excluder = token_filter(collection = token_scores[0][token_mask],
+                                     exclude = False)
 
     def transform(self, X):
-        pass
+        #import pdb
+        #pdb.set_trace()
+        return self.excluder.transform(X)
 
     def fit_transform(self, X, y = None):
-        pass
+        self.fit(X, y)
+        return self.transform(X)
 
 class tem_metric():
     """ The model efficiency metric, calculates the 'scores' of each individual token

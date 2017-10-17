@@ -2,7 +2,7 @@
 Unit tests for preprocessor classes in src/preprocessor.py
 To run: make test
 '''
-from numpy import arange, array
+from numpy import arange, array, ndarray
 from numpy.ma import allequal
 from numpy import in1d
 import unittest as unittest
@@ -58,6 +58,7 @@ class TestPreprocessing(unittest.TestCase):
         self.assertTrue(tokenizer.transform(txt_corpus))
         
         result = tokenizer.transform(txt_corpus)
+        self.assertTrue(type(result[0]) == ndarray)
         self.assertEqual(result[0].shape[0], word_count)
         self.assertTrue(allequal(result[0], result[1]))
 
@@ -71,17 +72,17 @@ class TestPreprocessing(unittest.TestCase):
         b_func = lambda X, y: y + 1
 
         # Test fitting
-        filter = src.preprocessing.token_filter(exclude = [], exclude_f = b_func)
+        filter = src.preprocessing.token_filter(collection = [], collect_func = b_func)
         filter.fit(X, y)
 
-        self.assertTrue(allequal(filter._exclude, y + 1))
+        self.assertTrue(allequal(filter._collection, y + 1))
 
         # Assert actual and expected arrays have the same elements
         actual = filter.transform(X)
         self.assert_equal_array(actual, expected)
 
         # Assert fit_transform also works
-        filter = src.preprocessing.token_filter(exclude = [], exclude_f = b_func)
+        filter = src.preprocessing.token_filter(collection = [], collect_func = b_func)
         actual = filter.fit_transform(X, y)
         self.assert_equal_array(actual, expected)
 
@@ -92,7 +93,7 @@ class TestPreprocessing(unittest.TestCase):
         b = array([0,6,7,8,9])
         expected = array([arange(1,6), arange(1,6), arange(5,6)])
 
-        filter = src.preprocessing.token_filter(exclude = b)
+        filter = src.preprocessing.token_filter(collection = b)
 
         # Assert actual and expected arrays have the same elements
         actual = filter.transform(X)
@@ -115,8 +116,8 @@ class TestPreprocessing(unittest.TestCase):
         self.assertEqual(actual_new.sum(), expected_counts_new)
 
     def test_tem_preprocessor(self):
-        test_tokens = array([[1,1,1,1,1,2,2,2,2,2,3,3,3,4],
-                             [1,2,4,5]])
+        test_tokens = array([array([1,1,1,1,1,2,2,2,2,2,3,3,3,4]),
+                             array([1,2,4,5])])
         test_unseen = array([[1,2,4,5]])
         test_metric = src.preprocessing.tem_metric()
         test_metric._metric = lambda X, y = None: X.sum(axis = 0) >= 3
