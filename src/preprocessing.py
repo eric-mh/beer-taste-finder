@@ -4,9 +4,18 @@ the beer data in this project.
 
 Every preprocessor class mimics the self.fit, self.fit_transform and self.transform
 behavior as if they adhered to sklearn conventions.
+
+The preprocessing steps are expected to run in this order:
+    - preprocessor.doc_tokenizer
+        * tokenizes documents with spacy
+    - preprocessor.token_filter
+        * filters out obvious insignificant tokens 
+    - preprocessor.mfe_preprocessor
+        * further filter out tokens using a metric
+    - preprocessor.token_vectorizer
+        * converts document tokens into a feature matrix for modeling.
 """
-from numpy import array, hstack, min, in1d
-from numpy.random import randint
+from numpy import array, hstack, vstack, min, in1d
 from spacy import load, attrs
 from sklearn.feature_extraction import text
 
@@ -143,27 +152,30 @@ class token_vectorizer():
         OUTPUTS:
         --------
             X, transformed: A sparse matrix with counts or TFIDFS. """
-        return self.vec.transform(X)
+        return self.vec.transform(X).toarray()
 
     def fit_transform(self, X, y = None):
-        return self.vec.fit_transform(X, y)
+        return self.vec.fit_transform(X, y).toarray()
 
-class mfe_preprocessor():
-    """ A preprocessor that further reduces the number of features by removing
-    'Inefficient' ones. Calculates efficiency using the count vectorizer and a metric.
+class mfe_token_preprocessor():
+    """ A preprocessor that further reduces the number of tokens by removing
+    'Inefficient' ones. Calculates efficiency using a metric function.
     PARAMETERS:
     -----------
         threshold : float, a cut-off threshold for the metric.
-        metric: Lambda Function(X, y), optional; a function that calculates a metric
+        metric: mfe_metric instance, optional; a function that calculates a metric
                 for every feature. Expects a list output that is the positional metric
-                of every column. Defaults to a useless metric for testing."""
+                of every column. Defaults to the model feature efficiency metric."""
     def __init__(self, threshold, metric = None):
         self.vectorizer = token_vectorizer(use_tfidfs = False)
         if metric:
             self.metric = metric
         else:
-            self.metric = mfe_metric
+            self.metric = mfe_metric()
         self.threshold = threshold
+        self.metric_msk = None
+
+        self.excluder = token_filter
 
     def fit(self, X, y = None):
         pass
@@ -174,5 +186,29 @@ class mfe_preprocessor():
     def fit_transform(self, X, y = None):
         pass
 
-def mfe_metric(X, y = None):
-    pass
+class mfe_metric():
+    """ The model efficiency metric, calculates the 'scores' of each individual token
+    when given a corpus of tokens. """
+    def __init__(self):
+        self.vectorizer = token_vectorizer(use_tfidfs = False)
+
+    def _metric(self, X, y = None):
+        pass
+
+    def score_tokens(self, X, y = None):
+        """ Creates a vector with the scores for each token.
+            INPUTS:
+            -------
+                X : Array, an array of the tokens of N documents, where the total
+                    number of distinct tokens is C.
+                y : Array, optional, a (N,) shaped np array of targets.
+            OUTPUTS:
+            --------
+                scores : Array shaped (2,C) with token and token scores. """
+        scores = self._metric(self.vectorizer.fit_transform(X))
+
+        vocab = self.vectorizer.vec.vocabulary_
+        vocab = sorted(vocab.keys(), key = lambda x: vocab[x])
+
+        return vstack((vocab, scores))
+
