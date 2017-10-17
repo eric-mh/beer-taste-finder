@@ -30,14 +30,29 @@ class TestPreprocessing(unittest.TestCase):
     def test_pipeline(self):
         pass
 
+    def test_tokenize_vectorizer(self):
+        spacy_out_1 = array([[100, 1],
+                             [110, 1],
+                             [111, 0]])
+        spacy_out_2 = array([[100, 1, 1],
+                             [110, 1, 0],
+                             [111, 0, 0]])
+        expected_1 = array([100, 110])
+        expected_2 = array([100])
+
+        mat_to_vec = src.preprocessing.doc_tokenizer._vectorize_s_matrix
+        actual_1 = mat_to_vec(spacy_out_1)
+        actual_2 = mat_to_vec(spacy_out_2)
+
+        self.assertTrue(allequal(actual_1, expected_1))
+        self.assertTrue(allequal(actual_2, expected_2))
+
     def test_spacy_tokenizer(self):
-        from spacy import load, attrs
-        parser = load('en')
         txt_document = unicode(load_txt('tests/test_document.txt'))
         word_count = 16
         txt_corpus = [txt_document, txt_document]
         
-        tokenizer = src.preprocessing.doc_tokenizer()
+        tokenizer = src.preprocessing.doc_tokenizer(testing = True)
         self.assertTrue(tokenizer.transform(txt_corpus))
         
         result = tokenizer.transform(txt_corpus)

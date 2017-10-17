@@ -6,27 +6,55 @@ Every preprocessor class mimics the self.fit, self.fit_transform and self.transf
 behavior as if they adhered to sklearn conventions.
 """
 from numpy import array, hstack, in1d
-# from spacy import load
-# parser = load('en_core_web_md')
 
 class doc_tokenizer():
     """ The document tokenizer takes a corpus and tokenizes every document into
-    a numpy list of all the words as spacy word IDs. """
-    def __init__(self):
+    a numpy list of all the words as spacy word IDs.
+    PARAMETERS:
+    -----------
+        batch_size: int, optional; batch size to pass to parser.pipe
+        n_threads: int, optional; number of threads to pass to parser.pipe
+        testing: boolean, optional; flag if tokenizer is only being used in a test. """
+    def __init__(self, batch_size = 1, n_threads = 1, testing = False):
+        from spacy import load, attrs
+        if testing:
+            self._parser = load('en')
+        else:
+            self._parser = load('en_core_web_md')
+
+        self.ar_args = [attrs.LEMMA, attrs.IS_ALPHA]
+
+        self._batch_size = batch_size
+        self._n_threads = n_threads
+
+    @staticmethod
+    def _vectorize_s_matrix(matrix):
+        """ Vectorize a single spacy matrix of N x M shape returning the first
+        column of N masked with the other columns.
+        INPUTS:
+        -------
+            matrix : N x M numpy array
+        OUTPUTS:
+        --------
+            vector : N, shape numpy array. """
         pass
 
     def fit(self, X, y = None):
-        return self.transform(X)
+        return self
 
     def transform(self, X):
-        """ Tokenize all documents.
+        """ Tokenize all documents. Expects unicode.
         INPUTS:
         -------
             X : An interable corpus of documents. For now, expect a generator.
         OUTPUTS:
         --------
             X : The transformed corpus. """
-        pass # wt
+        collector = [] # Inefficient
+        corpus = self._parser.pipe(X, self._batch_size, self._n_threads)
+
+        for document in corpus:
+            collector.append(self._vectorize_s_matrix(document.to_array(self.ar_args)))
 
     def fit_transform(self, X, y = None):
         return self.transform(X)
@@ -72,7 +100,7 @@ class token_filter():
         --------
             X : Array, A reduced array of tokenized document.
         """
-        collector = []
+        collector = [] # Inefficient
         for row in X:
             collector.append(self._filter_row(row))
         return array(collector)
