@@ -98,7 +98,18 @@ class TestPreprocessing(unittest.TestCase):
 
     @unittest.skip("vectorizer unimplemented")
     def test_vectorizer(self):
-        pass
+        corpus = array([[1,2,3,4],
+                        [1,2,5,6]])
+        new_corpus = array([[1,2,7,8]])
+        vectorizer = src.preprocessing.token_vectorizer("counts")
+
+        expected_old = array([2,2,1,1,1,1])
+        expected_new = array([1,1,0,0,0,0])
+        actual_old = vectorizer.fit_transform(corpus)
+        actual_new = vectorizer.transform(new_corpus)
+
+        self.assert_equal_array(sorted(actual_old), sorted(expected_old))
+        self.assert_equal_array(sorted(actual_new), sorted(expected_new))
 
     @unittest.skip("metric function unimplemented")
     def test_metric(self):
