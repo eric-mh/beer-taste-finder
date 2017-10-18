@@ -3,7 +3,7 @@ test:
 	py.test tests/preprocessor_tests.py
 	py.test tests/modeling_tests.py
 
-.phony: test_modeling
+.PHONY: test_modeling
 test_modeling:
 	py.test tests/modeling_tests.py
 
