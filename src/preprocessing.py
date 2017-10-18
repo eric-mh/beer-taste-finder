@@ -10,7 +10,7 @@ The preprocessing steps are expected to run in this order:
         * tokenizes documents with spacy
     - preprocessor.token_filter
         * filters out obvious insignificant tokens 
-    - preprocessor.mfe_preprocessor
+    - preprocessor.mfe_token_preprocessor
         * further filter out tokens using a metric
     - preprocessor.token_vectorizer
         * converts document tokens into a feature matrix for modeling.
@@ -19,6 +19,7 @@ from numpy import array, hstack, vstack, min, in1d
 from spacy import load, attrs
 from sklearn.feature_extraction import text
 
+from src.modeling import linear_importances, nb_importances
 
 class doc_tokenizer():
     """ The document tokenizer takes a corpus and tokenizes every document into
@@ -181,8 +182,6 @@ class tem_token_preprocessor():
                                      exclude = False)
 
     def transform(self, X):
-        #import pdb
-        #pdb.set_trace()
         return self.excluder.transform(X)
 
     def fit_transform(self, X, y = None):
@@ -191,12 +190,21 @@ class tem_token_preprocessor():
 
 class tem_metric():
     """ The model efficiency metric, calculates the 'scores' of each individual token
-    when given a corpus of tokens. """
-    def __init__(self):
+    when given a corpus of tokens. 
+    PARAMETERS:
+    -----------
+        use_nb : boolean, optional, use nb_importances from src.modeling.
+                 Uses src.modeling.linear_importances by default for testing. """
+    def __init__(self, use_nb = False):
         self.vectorizer = token_vectorizer(use_tfidfs = False)
+        if use_nb:
+            self.model = linear_importances
+        else:
+            self.model = nb_importances
 
     def _metric(self, X, y = None):
-        pass
+        self.model.fit(X, y)
+        return self.model.feature_importances_
 
     def score_tokens(self, X, y = None):
         """ Creates a vector with the scores for each token.
