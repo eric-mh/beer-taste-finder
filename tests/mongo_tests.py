@@ -35,7 +35,7 @@ class TestMongoLoader(unittest.TestCase):
         #Assumes test_filter_db works
         filter = {'beer/style' : ['Rauchbier'],
                   'beer/ABV' : ['5.00']}
-        mongo_wrapper = src.ratings_importer.MongoGenerator(filter)
+        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
 
         counts = 1
         for review in mongo_wrapper:
@@ -48,7 +48,16 @@ class TestMongoLoader(unittest.TestCase):
     def test_filter_db(self):
         filter = {'beer/style' : ['Rauchbier', 'Hefeweizen'],
                   'beer/ABV' : ['5.00']}
-        mongo_wrapper = src.ratings_importer.MongoGenerator(filter)
+        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
 
         expected_counts = 4511 + 64
         self.assertEqual(mongo_wrapper.count(),expected_counts)
+
+    def test_key_db(self):
+        filter = {'beer/style' : ['Rauchbier'],
+                  'beer/ABV' : ['5.00']}
+        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter,
+                                                            key = 'beer/ABV')
+
+        for beer_abv in mongo_wrapper:
+            self.assertEqual(beer_abv, '5.00')
