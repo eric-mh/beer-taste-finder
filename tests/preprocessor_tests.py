@@ -25,15 +25,11 @@ class TestPreprocessing(unittest.TestCase):
 
     def test_module_exists(self):
         """ Test that everything from preprocessing.py is loaded. """
-        self.assertTrue(src.preprocessing.doc_tokenizer)
-        self.assertTrue(src.preprocessing.token_filter)
-        self.assertTrue(src.preprocessing.token_vectorizer)
-        self.assertTrue(src.preprocessing.tem_token_preprocessor)
-        self.assertTrue(src.preprocessing.tem_metric)
-
-    @unittest.skip("preprocessor pipeline incomplete")
-    def test_pipeline(self):
-        pass
+        self.assertTrue(src.preprocessing.DocTokenizer)
+        self.assertTrue(src.preprocessing.TokenFilter)
+        self.assertTrue(src.preprocessing.TokenVectorizer)
+        self.assertTrue(src.preprocessing.TemTokenPreprocessor)
+        self.assertTrue(src.preprocessing.TemMetric)
 
     def test_tokenize_vectorizer(self):
         spacy_out_1 = array([[100, 1],
@@ -45,7 +41,7 @@ class TestPreprocessing(unittest.TestCase):
         expected_1 = array([100, 110])
         expected_2 = array([100])
 
-        mat_to_vec = src.preprocessing.doc_tokenizer._vectorize_s_matrix
+        mat_to_vec = src.preprocessing.DocTokenizer._vectorize_s_matrix
         actual_1 = mat_to_vec(spacy_out_1)
         actual_2 = mat_to_vec(spacy_out_2)
 
@@ -57,7 +53,7 @@ class TestPreprocessing(unittest.TestCase):
         word_count = 16
         txt_corpus = [txt_document, txt_document]
         
-        tokenizer = src.preprocessing.doc_tokenizer(testing = True)
+        tokenizer = src.preprocessing.DocTokenizer(testing = True)
         self.assertTrue(tokenizer.transform(txt_corpus))
         
         result = tokenizer.transform(txt_corpus)
@@ -75,7 +71,7 @@ class TestPreprocessing(unittest.TestCase):
         b_func = lambda X, y: y + 1
 
         # Test fitting
-        filter = src.preprocessing.token_filter(collection = [], collect_func = b_func)
+        filter = src.preprocessing.TokenFilter(collection = [], collect_func = b_func)
         filter.fit(X, y)
 
         self.assertTrue(allequal(filter._collection, y + 1))
@@ -85,7 +81,7 @@ class TestPreprocessing(unittest.TestCase):
         self.assert_equal_array(actual, expected)
 
         # Assert fit_transform also works
-        filter = src.preprocessing.token_filter(collection = [], collect_func = b_func)
+        filter = src.preprocessing.TokenFilter(collection = [], collect_func = b_func)
         actual = filter.fit_transform(X, y)
         self.assert_equal_array(actual, expected)
 
@@ -96,7 +92,7 @@ class TestPreprocessing(unittest.TestCase):
         b = array([0,6,7,8,9])
         expected = array([arange(1,6), arange(1,6), arange(5,6)])
 
-        filter = src.preprocessing.token_filter(collection = b)
+        filter = src.preprocessing.TokenFilter(collection = b)
 
         # Assert actual and expected arrays have the same elements
         actual = filter.transform(X)
@@ -106,7 +102,7 @@ class TestPreprocessing(unittest.TestCase):
         corpus = array([[1,2,3,4],
                         [1,2,5]])
         new_corpus = array([[1,2,7,8]])
-        vectorizer = src.preprocessing.token_vectorizer(use_tfidfs = False)
+        vectorizer = src.preprocessing.TokenVectorizer(use_tfidfs = False)
 
         expected_counts_o1 = 4
         expected_counts_o2 = 3
@@ -122,7 +118,7 @@ class TestPreprocessing(unittest.TestCase):
         test_tokens = array([array([1,1,1,1,1,2,2,2,2,2,3,3,3,4]),
                              array([1,2,4,5])])
         test_unseen = array([[1,2,4,5]])
-        test_metric = src.preprocessing.tem_metric()
+        test_metric = src.preprocessing.TemMetric()
         test_metric._metric = lambda X, y = None: X.sum(axis = 0) >= 3
 
         expected_new = array([[1,1,1,1,1,2,2,2,2,2,3,3,3],
@@ -130,8 +126,8 @@ class TestPreprocessing(unittest.TestCase):
         expected_unseen = array([[1,2]])
         test_threshold = 0.5
 
-        preprocessor = src.preprocessing.tem_token_preprocessor(test_threshold,
-                                                                test_metric)
+        preprocessor = src.preprocessing.TemTokenPreprocessor(test_threshold,
+                                                              test_metric)
 
         actual_new = preprocessor.fit_transform(test_tokens)
         actual_unseen = preprocessor.transform(test_unseen)
@@ -142,7 +138,7 @@ class TestPreprocessing(unittest.TestCase):
     def test_metric_basic(self):
         test_tokens = array([[1,1,1,1,1,2,2,2,2,2,3,3,3,4],
                              [1,2,4,5]])
-        test_metric = src.preprocessing.tem_metric(use_nb = False)
+        test_metric = src.preprocessing.TemMetric(use_nb = False)
         test_metric._metric = lambda X, y = None: X.sum(axis = 0) >= 3
 
         token_scores = test_metric.score_tokens(test_tokens)
@@ -156,9 +152,7 @@ class TestPreprocessing(unittest.TestCase):
                    [5,6]])
         y = array([1,2,3,4,5])
         
-        test_metric = src.preprocessing.tem_metric(use_nb = False)
-        # Look out for issues with .toarray not being called correctly
-        # Doesn't seem to happen during unit testing.
+        test_metric = src.preprocessing.TemMetric(use_nb = False)
         token_scores = test_metric.score_tokens(X, y)
 
         threshold = 1.0

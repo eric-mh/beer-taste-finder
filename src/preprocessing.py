@@ -10,7 +10,7 @@ The preprocessing steps are expected to run in this order:
         * tokenizes documents with spacy
     - preprocessor.token_filter
         * filters out obvious insignificant tokens 
-    - preprocessor.mfe_token_preprocessor
+    - preprocessor.tem_token_preprocessor
         * further filter out tokens using a metric
     - preprocessor.token_vectorizer
         * converts document tokens into a feature matrix for modeling.
@@ -19,16 +19,17 @@ from numpy import array, hstack, vstack, min, in1d
 from spacy import load, attrs
 from sklearn.feature_extraction import text
 
-from src.modeling import linear_importances, nb_importances
+from src.modeling import LinearImportances, NBImportances
 
-class doc_tokenizer():
+class DocTokenizer():
     """ The document tokenizer takes a corpus and tokenizes every document into
     a numpy list of all the words as spacy word IDs.
     PARAMETERS:
     -----------
         batch_size: int, optional; batch size to pass to parser.pipe
         n_threads: int, optional; number of threads to pass to parser.pipe
-        testing: boolean, optional; flag if tokenizer is only being used in a test. """
+        testing: boolean, optional; flag if tokenizer is only being used in a test.
+                 only used to decide if en or en_core_web_md is used for spacy"""
     def __init__(self, batch_size = 1, n_threads = 1, testing = False):
         if testing:
             self._parser = load('en')
@@ -74,7 +75,7 @@ class doc_tokenizer():
     def fit_transform(self, X, y = None):
         return self.transform(X)
 
-class token_filter():
+class TokenFilter():
     """ token_filter removes everything inside of self._collection. Can be initialized
     with a starting set and a function to expand the list.
     PARAMETERS:
@@ -120,7 +121,7 @@ class token_filter():
         self.fit(X, y)
         return self.transform(X)
 
-class token_vectorizer():
+class TokenVectorizer():
     """ A wrapper for sklearn's text vectorizers that skip the built-in
     preprocessing and tokenization steps.
     PARAMETERS:
@@ -154,7 +155,7 @@ class token_vectorizer():
     def fit_transform(self, X, y = None):
         return self.vec.fit_transform(X, y).toarray()
 
-class tem_token_preprocessor():
+class TemTokenPreprocessor():
     """ A preprocessor that further reduces the number of tokens by removing
     'Inefficient' ones. Calculates efficiency using a metric function.
     PARAMETERS:
@@ -164,7 +165,7 @@ class tem_token_preprocessor():
                 for every feature. Expects a list output that is the positional metric
                 of every column. Defaults to the model feature efficiency metric."""
     def __init__(self, threshold, metric = None):
-        self.vectorizer = token_vectorizer(use_tfidfs = False)
+        self.vectorizer = TokenVectorizer(use_tfidfs = False)
         if metric:
             self.metric = metric
         else:
@@ -178,8 +179,8 @@ class tem_token_preprocessor():
     def fit(self, X, y = None):
         token_scores = self.metric.score_tokens(X, y)
         token_mask = token_scores[1] >= self.threshold
-        self.excluder = token_filter(collection = token_scores[0][token_mask],
-                                     exclude = False)
+        self.excluder = TokenFilter(collection = token_scores[0][token_mask],
+                                    exclude = False)
 
     def transform(self, X):
         return self.excluder.transform(X)
@@ -188,7 +189,7 @@ class tem_token_preprocessor():
         self.fit(X, y)
         return self.transform(X)
 
-class tem_metric():
+class TemMetric():
     """ The model efficiency metric, calculates the 'scores' of each individual token
     when given a corpus of tokens. 
     PARAMETERS:
@@ -196,11 +197,11 @@ class tem_metric():
         use_nb : boolean, optional, use nb_importances from src.modeling.
                  Uses src.modeling.linear_importances by default for testing. """
     def __init__(self, use_nb = False):
-        self.vectorizer = token_vectorizer(use_tfidfs = False)
+        self.vectorizer = TokenVectorizer(use_tfidfs = False)
         if use_nb:
-            self.model = nb_importances()
+            self.model = NBImportances()
         else:
-            self.model = linear_importances()
+            self.model = LinearImportances()
 
     def _metric(self, X, y = None):
         self.model.fit(X, y)

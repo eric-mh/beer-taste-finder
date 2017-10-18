@@ -11,7 +11,7 @@ So far, this file contains:
 from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import MultinomialNB
 
-class linear_importances():
+class LinearImportances():
     """ A wrapper for sklearn's LinearRegression that calculates feature importances
     as their corresponding beta cofficients divided by the sum of its frequency in
     the data. """
@@ -32,7 +32,7 @@ class linear_importances():
     def predict(self, X):
         return self.linear_model.predict(X)
 
-class nb_importances():
+class NBImportances():
     """ A wrapepr for sklearn's MultinomialNB that calculates feature importances
     as the total impact of that feature in the confidence of the model. """
     def __init__(self, **kwargs):
