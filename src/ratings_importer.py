@@ -48,12 +48,22 @@ class MongoGenerator(object):
             self.cursors.append(self.collection.find(query))
 
         self.chained_cursors = chain(*self.cursors)
-        self.__next__ = self.next
+
+    def __next__(self):
+        return self.next()
+
+    def __len__(self):
+        return self.count()
 
     def __iter__(self):
         return self
 
     def next(self):
+        if self.limit is not None:
+            if self.limit == 0:
+                raise StopIteration
+            else:
+                self.limit -= 1
         if self.key is None:
             return self.chained_cursors.next()
         elif type(self.key) == list:
@@ -62,4 +72,7 @@ class MongoGenerator(object):
             return self.chained_cursors.next()[self.key]
 
     def count(self):
-        return sum([cursor.count() for cursor in self.cursors])
+        if self.limit is None:
+            return sum([cursor.count() for cursor in self.cursors])
+        else:
+            return self.limit
