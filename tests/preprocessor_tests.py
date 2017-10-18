@@ -27,6 +27,7 @@ class TestPreprocessing(unittest.TestCase):
         self.assertTrue(src.preprocessing.token_filter)
         self.assertTrue(src.preprocessing.token_vectorizer)
         self.assertTrue(src.preprocessing.tem_token_preprocessor)
+        self.assertTrue(src.preprocessing.tem_metric)
 
     @unittest.skip("preprocessor pipeline incomplete")
     def test_pipeline(self):
@@ -139,8 +140,26 @@ class TestPreprocessing(unittest.TestCase):
     def test_metric_basic(self):
         test_tokens = array([[1,1,1,1,1,2,2,2,2,2,3,3,3,4],
                              [1,2,4,5]])
-        test_metric = src.preprocessing.tem_metric()
+        test_metric = src.preprocessing.tem_metric(use_nb = False)
         test_metric._metric = lambda X, y = None: X.sum(axis = 0) >= 3
 
         token_scores = test_metric.score_tokens(test_tokens)
         self.assertEqual(token_scores[1].sum(), 3)
+
+    def test_metric_linear(self):
+        X = array([[1,6],
+                   [2,6],
+                   [3,6],
+                   [4,6],
+                   [5,6]])
+        y = array([1,2,3,4,5])
+        
+        test_metric = src.preprocessing.tem_metric(use_nb = False)
+        # Look out for issues with .toarray not being called correctly
+        # Doesn't seem to happen during unit testing.
+        token_scores = test_metric.score_tokens(X, y)
+
+        threshold = 1.0
+        expected = array([True, True, True, True, True, False])
+        actual = token_scores[1] >= threshold
+        self.assertTrue(allequal(expected, e_row))
