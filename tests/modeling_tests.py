@@ -6,6 +6,8 @@ import unittest as unittest
 from numpy.ma import allequal, allclose
 import src
 
+src.load_modeling()
+
 from numpy import array
 
 class TestModeling(unittest.TestCase):

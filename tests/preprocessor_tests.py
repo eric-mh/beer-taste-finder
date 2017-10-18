@@ -8,6 +8,8 @@ from numpy import in1d
 import unittest as unittest
 import src
 
+src.load_preprocessing()
+
 def load_txt(filename):
     file_object = file(filename)
     txtstring = file_object.read()
