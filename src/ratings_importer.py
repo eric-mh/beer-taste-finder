@@ -4,6 +4,19 @@ ratings_importer holds functions and classes responsible for loading in the rati
 
 from pymongo import MongoClient
 from pymongo.uri_parser import parse_uri
+from sklearn.model_selection import ParameterGrid
+
+from itertools import chain
+
+def expand_queries(filter_query):
+    """ Expands a dict filter into the needed SON filters for the pymongo querying.
+    Uses sklearn.model_selection's ParameterGrid to enumerate combinations. """
+    if filter_query is None:
+        return [None]
+    for key in filter_query.keys():
+        if type(filter_query[key]) != list:
+            filter_query[key] = [filter_query[key]]
+    return list(ParameterGrid(filter_query))
 
 class MongoNames():
     """ Holds the names of the mongo database and collection. """
@@ -21,15 +34,31 @@ class MongoGenerator(object):
                        value(list), (optional; defaults an empty dictionary)
             A dictionary where keys are the names of the keys, and values
             is a list of the possible values they can take. """
-    def __init__(self, filter = None):
+    def __init__(self, filter_query = None, key = None):
         self.client = MongoClient()
         self.mongo_names = MongoNames()
         
         self.database = self.client[self.mongo_names.database]
         self.collection = self.database[self.mongo_names.collection]
+        self.key = key
+
+        self.cursors = []
+        for query in expand_queries(filter_query):
+            self.cursors.append(self.collection.find(query))
+
+        self.chained_cursors = chain(*self.cursors)
+        self.__next__ = self.next
 
     def __iter__(self):
-        pass
+        return self
+
+    def next(self):
+        if self.key is None:
+            return self.chained_cursors.next()
+        elif type(self.key) == list:
+            return [self.chained_cursors.next()[key] for key in self.key]
+        else:
+            return self.chained_cursors.next()[self.key]
 
     def count(self):
-        pass
+        return sum([cursor.count() for cursor in self.cursors])
