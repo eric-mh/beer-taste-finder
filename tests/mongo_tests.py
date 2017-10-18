@@ -5,6 +5,8 @@ Unit tests for everything related to mongo in src/ratings_importer.py
 import unittest
 import src
 
+src.load_ratings_importer()
+
 class TestMongoLoader(unittest.TestCase):
     def test_exists_db(self):
         """ Double check to see if the named database and collection exist. """
@@ -15,6 +17,8 @@ class TestMongoLoader(unittest.TestCase):
         self.assertTrue(mongo_names.collection in mongo_wrapper.database.collection_names())
 
     def test_expand_query(self):
+        """ Test to see if query dictionaries are being correctly expanded into
+        SON filter objects. """
         filter_s = {'key_alpha' : ['alpha_a', 'alpha_b'],
                     'key_numeric' : 'num_1'}
         filter_t = {'key_alpha' : ['alpha_a', 'alpha_b'],
@@ -32,12 +36,13 @@ class TestMongoLoader(unittest.TestCase):
             self.assertEqual(q_e, q_a)
 
     def test_iter_db(self):
+        """ Test if the wrapper is an iterator. """
         #Assumes test_filter_db works
         filter = {'beer/style' : ['Rauchbier'],
                   'beer/ABV' : ['5.00']}
         mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
 
-        counts = 1
+        counts = 0
         for review in mongo_wrapper:
             self.assertIsNotNone(review)
             counts += 1
@@ -46,6 +51,7 @@ class TestMongoLoader(unittest.TestCase):
         self.assertEqual(counts, expected_counts)
 
     def test_filter_db(self):
+        """ Test if filtering works with the wrapper to query the database. """
         filter = {'beer/style' : ['Rauchbier', 'Hefeweizen'],
                   'beer/ABV' : ['5.00']}
         mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
@@ -54,6 +60,7 @@ class TestMongoLoader(unittest.TestCase):
         self.assertEqual(mongo_wrapper.count(),expected_counts)
 
     def test_key_db(self):
+        """ Test if filtering and key-ing return values works. """
         filter = {'beer/style' : ['Rauchbier'],
                   'beer/ABV' : ['5.00']}
         mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter,
@@ -61,3 +68,15 @@ class TestMongoLoader(unittest.TestCase):
 
         for beer_abv in mongo_wrapper:
             self.assertEqual(beer_abv, '5.00')
+
+    def test_keys_db(self):
+        """ Test if filtering and key-ing multiple return values works. """
+        filter = {'beer/style' : ['Rauchbier'],
+                  'beer/ABV' : ['5.00']}
+        res = sorted(['5.00', 'Rauchbier'])
+        key = ['beer/ABV', 'beer/style']
+        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter,
+                                                            key = key)
+
+        for data_point in mongo_wrapper:
+            self.assertEqual(tuple(sorted(data_point)), tuple(res))
