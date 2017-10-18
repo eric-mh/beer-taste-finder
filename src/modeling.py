@@ -23,7 +23,14 @@ class linear_importances():
         pass
 
     def fit(self, X, y):
-        pass
+        self.linear_model.fit(X, y)
+        scores = (self.linear_model.coef_ + self.linear_model.intercept_)
+        token_frequencies = X.sum(axis = 0)
+        self.feature_importances_ = scores/token_frequencies
+        return self
+
+    def predict(self, X):
+        return self.linear_model.predict(X)
 
 class nb_importances():
     """ A wrapepr for sklearn's MultinomialNB that calculates feature importances

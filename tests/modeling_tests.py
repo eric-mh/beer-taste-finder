@@ -3,7 +3,7 @@ Unit tests for modeling classes in src/modeling.py
 To run: make test or make test_modeling
 '''
 import unittest as unittest
-from numpy.ma import allequal
+from numpy.ma import allequal, allclose
 import src
 
 from numpy import array
@@ -19,9 +19,9 @@ class TestModeling(unittest.TestCase):
                    [0, 0, 1, 0, 0, 1],
                    [0, 0, 0, 1, 0, 1],
                    [0, 0, 0, 0, 1, 1]])
-        y = array([1., 2., 3., 4., .5])
+        y = array([1., 2., 3., 4., 5.])
 
         linear_wrapper = src.modeling.linear_importances()
         linear_wrapper.fit(X, y)
-        self.assertTrue(allequal(y, linear_wrapper.predict(X)))
+        self.assertTrue(allclose(y, linear_wrapper.predict(X)))
         self.assertIsNotNone(linear_wrapper.feature_importances_)

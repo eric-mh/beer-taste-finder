@@ -162,4 +162,4 @@ class TestPreprocessing(unittest.TestCase):
         threshold = 1.0
         expected = array([True, True, True, True, True, False])
         actual = token_scores[1] >= threshold
-        self.assertTrue(allequal(expected, e_row))
+        self.assertTrue(allequal(expected, actual))

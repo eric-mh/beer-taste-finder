@@ -198,9 +198,9 @@ class tem_metric():
     def __init__(self, use_nb = False):
         self.vectorizer = token_vectorizer(use_tfidfs = False)
         if use_nb:
-            self.model = linear_importances
+            self.model = nb_importances()
         else:
-            self.model = nb_importances
+            self.model = linear_importances()
 
     def _metric(self, X, y = None):
         self.model.fit(X, y)
@@ -216,10 +216,9 @@ class tem_metric():
             OUTPUTS:
             --------
                 scores : Array shaped (2,C) with token and token scores. """
-        scores = self._metric(self.vectorizer.fit_transform(X))
+        scores = self._metric(self.vectorizer.fit_transform(X), y)
 
         vocab = self.vectorizer.vec.vocabulary_
-        vocab = sorted(vocab.keys(), key = lambda x: vocab[x])
-
+        vocab = array(sorted(vocab.keys(), key = lambda x: vocab[x]))
         return vstack((vocab, scores))
 
