@@ -34,9 +34,10 @@ class MongoGenerator(object):
                        value(list), (optional; defaults an empty dictionary)
             A dictionary where keys are the names of the keys, and values
             is a list of the possible values they can take. """
-    def __init__(self, filter_query = None, key = None):
+    def __init__(self, filter_query = None, key = None, limit = None):
         self.client = MongoClient()
         self.mongo_names = MongoNames()
+        self.limit = limit
         
         self.database = self.client[self.mongo_names.database]
         self.collection = self.database[self.mongo_names.collection]

@@ -6,14 +6,18 @@ Every preprocessor class mimics the self.fit, self.fit_transform and self.transf
 behavior as if they adhered to sklearn conventions.
 
 The preprocessing steps are expected to run in this order:
-    - preprocessor.doc_tokenizer
-        * tokenizes documents with spacy
-    - preprocessor.token_filter
-        * filters out obvious insignificant tokens 
-    - preprocessor.tem_token_preprocessor
-        * further filter out tokens using a metric
-    - preprocessor.token_vectorizer
-        * converts document tokens into a feature matrix for modeling.
+    - preprocessing.DocTokenizer
+        * Tokenizes documents with spacy.
+    - preprocessing.TokenFilter
+        * Filters out tokens.
+    - preprocessing.TemTokenPreprocessor
+        * Further filter out tokens using a metric.
+    - preprocessing.TokenVectorizer
+        * Converts document tokens into a feature matrix for modeling.
+    - preprocessing.SimplePipeline
+        * Another wrapper that holds preprocessing steps and can broadcast
+          step.fit_transform and step.transform operations through all of them.
+        * Imitates the functionality of sklearn's Pipeline, but is simpler.
 """
 from numpy import array, hstack, vstack, min, in1d
 from spacy import load, attrs
@@ -223,3 +227,22 @@ class TemMetric():
         vocab = array(sorted(vocab.keys(), key = lambda x: vocab[x]))
         return vstack((vocab, scores))
 
+class SimplePipeline():
+    """ SimplePipeline imitates sklearn's Pipeline. Is able to call .fit, .fit_transform
+    and .transform across all the steps and returns the output of the final one.
+    PARAMETERS:
+    -----------
+        steps : List of preprocessor instances that have .fit, .fit_transform and
+                .transform. Calls them sequentially and passes the outputs along. """
+    def __init__(self, steps):
+        self.steps = steps
+
+    def fit(self, X, y = None):
+        pass
+
+    def transform(self, X):
+        pass
+
+    def fit_transform(self, X, y = None):
+        self.fit(X, y)
+        return self.transform(X)
