@@ -27,3 +27,4 @@ class TestModeling(unittest.TestCase):
         linear_wrapper.fit(X, y)
         self.assertTrue(allclose(y, linear_wrapper.predict(X)))
         self.assertIsNotNone(linear_wrapper.feature_importances_)
+        self.assertTrue(linear_wrapper.score(X, y) >= 0)

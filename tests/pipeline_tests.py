@@ -11,13 +11,15 @@ src.load_preprocessing()
 src.load_ratings_importer()
 src.load_model_fitting()
 
+
 class TestPipeline(unittest.TestCase):
     def test_loaded(self):
         "All required modules are loaded"
         self.assertIsNotNone(src.ratings_importer.MongoGenerator)
         self.assertIsNotNone(src.preprocessing.SimplePipeline)
+        self.assertIsNotNone(src.modeling.LinearImportances)
 
-    @unittest.skip("skip to prioritize linear run")
+#    @unittest.skip("skip to prioritize linear run")
     def test_preprocessing_pipe(self):
         "Mongo to vector matrix test"
         mongo_gen = src.ratings_importer.MongoGenerator
@@ -40,7 +42,10 @@ class TestPipeline(unittest.TestCase):
 
         self.assertIsNotNone(pipeline.fit_transform(data_fit_X, data_fit_y))
         self.assertIsNotNone(pipeline.transform(data_tfs_X))
+        for word in pipeline.feature_vocabulary_:
+            self.assertEqual(type(word), unicode)
 
+    @unittest.skip("skip to prioritize the pipeline")
     def test_run_linear(self):
         "Test to see if the basic linear pipeline can give results."
         mongo_gen = src.ratings_importer.MongoGenerator
@@ -60,11 +65,12 @@ class TestPipeline(unittest.TestCase):
 
         pipeline_model = src.model_fitting.linear(pipeline = pipeline,
                                                   X = data_X,
-                                                  y = data_y)
+                                                  y = data_y,
+                                                  model = src.modeling.LinearImportances)
         pipeline_model._run()
 
         # Assert training score is not zero and tokens are meaningful words.
-        train_score = pipeline_model.score(data_X, data_y)
+        train_score = pipeline_model.score()
         self.assertTrue(train_score != None and train_score != 0)
         top_10 = pipeline_model.top_tokens()[:10]
         for token in top_10:
