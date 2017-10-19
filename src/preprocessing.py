@@ -230,12 +230,23 @@ class TemMetric():
 class SimplePipeline():
     """ SimplePipeline imitates sklearn's Pipeline. Is able to call .fit, .fit_transform
     and .transform across all the steps and returns the output of the final one.
+
+    Is standardized to call the DocTokenizer, TokenFilter, TemTokenPreprocessor and
+    TokenVectorizer sequentially to allow this to back-track tokens into a vocabulary.
     PARAMETERS:
     -----------
-        steps : List of preprocessor instances that have .fit, .fit_transform and
-                .transform. Calls them sequentially and passes the outputs along. """
-    def __init__(self, steps):
-        self.steps = steps
+        step_kwargs: List of kwargs,
+            List of keyword dictionaries used to construct each of the steps.
+        write_stats: boolean, (optional default False),
+            Flag to write stats or not during the evaluation of each step. """
+    def __init__(self, step_kwargs, write_stats = False):
+        step_refs = [DocTokenizer, TokenFilter, TemTokenPreprocessor, TokenVectorizer]
+
+        self.steps = []
+        for step_kwarg, step_ref in zip(step_kwargs, step_refs):
+            self.steps.append(step_ref(**step_kwarg))
+
+        self.write_stats = write_stats
         self.intermediate = None
 
     def fit(self, X, y = None):
