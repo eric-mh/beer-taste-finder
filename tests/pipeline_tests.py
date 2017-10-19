@@ -16,19 +16,18 @@ class TestPipeline(unittest.TestCase):
         self.assertIsNotNone(src.ratings_importer.MongoGenerator)
         self.assertIsNotNone(src.preprocessing.SimplePipeline)
 
-    @unittest.skip("pipeline not implemented")
     def test_preprocessing_pipe(self):
         "Mongo to vector matrix test"
+        mongo_gen = src.ratings_importer.MongoGenerator
 
         filter_query = {'beer/style' : 'Rauchbier'}
-        keys = ["review/taste", "review/text"]
-        data_f = src.ratings_importer.MongoGenerator(filter_query = None,
-                                                     key = keys,
-                                                     limit = 10)
-        data_f = array(list(data_f))
-        data_t = src.ratings_importer.MongoGenerator(filter_query = filter_query,
-                                                     key = "review/text",
-                                                     limit = 10)
+        feature_key = 'review/text'
+        target_key = 'review/taste'
+
+        data_fit_X = mongo_gen(filter_query = None, key = feature_key, limit = 10)
+        data_fit_y = mongo_gen(filter_query = None, key = target_key, limit = 10)
+
+        data_tfs_X = mongo_gen(filter_query = filter_query, key = feature_key, limit = 5)
 
         pipeline = src.preprocessing.SimplePipeline(
             steps = [src.preprocessing.DocTokenizer(batch_size = 1,
@@ -41,5 +40,5 @@ class TestPipeline(unittest.TestCase):
                                                             metric = None),
                      src.preprocessing.TokenVectorizer(use_tfidfs = False)])
 
-        self.assertIsNotNone(pipeline.fit_transform(data_f[:,0], data_f.T[1]))
-        self.assertIsNotNone(pipeline.transform(data_t))
+        self.assertIsNotNone(pipeline.fit_transform(data_fit_X, data_fit_y))
+        self.assertIsNotNone(pipeline.transform(data_tfs_X))

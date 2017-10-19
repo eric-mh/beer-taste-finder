@@ -173,7 +173,7 @@ class TemTokenPreprocessor():
         if metric:
             self.metric = metric
         else:
-            self.metric = tem_metric()
+            self.metric = TemMetric()
         self.threshold = threshold
         self.metric_msk = None
 
@@ -236,13 +236,21 @@ class SimplePipeline():
                 .transform. Calls them sequentially and passes the outputs along. """
     def __init__(self, steps):
         self.steps = steps
+        self.intermediate = None
 
     def fit(self, X, y = None):
-        pass
+        targets = array(list(y))
+        self.intermediate = X
+        for step in self.steps:
+            self.intermediate = step.fit_transform(self.intermediate, targets)
+        return self
 
     def transform(self, X):
-        pass
+        self.intermediate = X
+        for step in self.steps:
+            self.intermediate = step.transform(self.intermediate)
+        return self.intermediate
 
     def fit_transform(self, X, y = None):
         self.fit(X, y)
-        return self.transform(X)
+        return self.intermediate
