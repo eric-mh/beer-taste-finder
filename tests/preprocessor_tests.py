@@ -1,6 +1,7 @@
 '''
 Unit tests for preprocessor classes in src/preprocessor.py
-To run: make test
+Also tests model pipelines in src/model_fitting.py
+To run: make test_preprocessing
 '''
 from numpy import arange, array, ndarray
 from numpy.ma import allequal
@@ -9,6 +10,7 @@ import unittest as unittest
 import src
 
 src.load_preprocessing()
+src.load_model_fitting()
 
 def load_txt(filename):
     file_object = file(filename)
