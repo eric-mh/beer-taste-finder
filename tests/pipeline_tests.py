@@ -31,15 +31,11 @@ class TestPipeline(unittest.TestCase):
         data_tfs_X = mongo_gen(filter_query = filter_query, key = feature_key, limit = 5)
 
         pipeline = src.preprocessing.SimplePipeline(
-            steps = [src.preprocessing.DocTokenizer(batch_size = 1,
-                                                    n_threads = 1, 
-                                                    testing = True),
-                     src.preprocessing.TokenFilter(collection = [],
-                                                   collect_func = None,
-                                                   exclude = True),
-                     src.preprocessing.TemTokenPreprocessor(threshold = 0.5,
-                                                            metric = None),
-                     src.preprocessing.TokenVectorizer(use_tfidfs = False)])
+            step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
+                           {'collection':[], 'collect_func': None, 'exclude': True},
+                           {'threshold': 0.5, 'metric': None},
+                           {'use_tfidfs': False}],
+            write_stats = False)
 
         self.assertIsNotNone(pipeline.fit_transform(data_fit_X, data_fit_y))
         self.assertIsNotNone(pipeline.transform(data_tfs_X))
@@ -52,5 +48,3 @@ class TestPipeline(unittest.TestCase):
 
         data_fit_X = mongo_gen(filter_query = None, key = feature_key)
         data_fit_y = mongo_gen(filter_query = None, key = target_key)
-
-        
