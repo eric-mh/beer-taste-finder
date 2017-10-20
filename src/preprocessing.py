@@ -21,6 +21,7 @@ The preprocessing steps are expected to run in this order:
 """
 from numpy import array, hstack, vstack, min, in1d
 from spacy import load, attrs
+from spacy.en import word_sets
 from sklearn.feature_extraction import text
 
 from time import time
@@ -43,7 +44,10 @@ class DocTokenizer():
         else:
             self._parser = load('en_core_web_md')
 
-        self.ar_args = [attrs.LEMMA, attrs.IS_ALPHA]
+        # Load stopwords
+        self._parser.vocab.add_flag(lambda s: s.lower() not in word_sets.STOP_WORDS,
+                                    attrs.IS_STOP)
+        self.ar_args = [attrs.LEMMA, attrs.IS_ALPHA, attrs.IS_STOP]
 
         self._batch_size = batch_size
         self._n_threads = n_threads
@@ -283,7 +287,7 @@ class SimplePipeline():
 
     def fit_with_stats(self, X, y = None):
         line = "Step {}:\n\ttime: {} s, memory: {}\n"
-        file_out = open("pipeline_stats.md", 'w')
+        file_out = open("pipeline_stats.txt", 'w')
         file_out.write("Running pipeline at {}\n".format(str(time())))
 
         targets = array(list(y))
