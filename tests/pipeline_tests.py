@@ -19,6 +19,7 @@ class TestPipeline(unittest.TestCase):
         self.assertIsNotNone(src.preprocessing.SimplePipeline)
         self.assertIsNotNone(src.modeling.LinearImportances)
 
+    @unittest.skip("prioritize nb")
     def test_preprocessing_pipe(self):
         "Mongo to vector matrix test"
         mongo_gen = src.ratings_importer.MongoGenerator
@@ -44,6 +45,7 @@ class TestPipeline(unittest.TestCase):
         for word in pipeline.feature_vocabulary_:
             self.assertIn(type(word), [unicode_, unicode])
 
+    @unittest.skip("prioritize nb")
     def test_run_linear(self):
         "Test to see if the basic linear pipeline can give results."
         mongo_gen = src.ratings_importer.MongoGenerator
@@ -61,10 +63,10 @@ class TestPipeline(unittest.TestCase):
                            {'use_tfidfs': False}],
             write_stats = True)
 
-        pipeline_model = src.model_fitting.linear(pipeline = pipeline,
-                                                  X = data_X,
-                                                  y = data_y,
-                                                  model = src.modeling.LinearImportances)
+        pipeline_model = src.model_fitting.generic(pipeline = pipeline,
+                                                   X = data_X,
+                                                   y = data_y,
+                                                   model = src.modeling.LinearImportances)
         pipeline_model._run()
 
         # Assert training score is not zero and tokens are meaningful words.
@@ -92,10 +94,10 @@ class TestPipeline(unittest.TestCase):
                            {'use_tfidfs': False}],
             write_stats = True)
 
-        pipeline_model = src.model_fitting.linear(pipeline = pipeline,
-                                                  X = data_X,
-                                                  y = data_y,
-                                                  model = src.modeling.NBImportances)
+        pipeline_model = src.model_fitting.generic(pipeline = pipeline,
+                                                   X = data_X,
+                                                   y = data_y,
+                                                   model = src.modeling.NBImportances)
         pipeline_model._run()
 
         # Assert training score is not zero and tokens are meaningful words.

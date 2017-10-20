@@ -1,10 +1,10 @@
 '''
-Stores all classes containing data to model pipelines.
+Stores the complete data to model pipeline.
 '''
 
 from numpy import array, vstack
 
-class linear():
+class generic():
     """ The linear pipeline is a first-pass at producing feature importances
     from the reviews data and a RMSE score for the goodness-of-fit. As a first-pass
     approach, it:
@@ -35,7 +35,7 @@ class linear():
     def _run(self):
         """ Run the linear model on the specified data using a specified preprocessor
         and on the specified data. Is required before any other method is called. """
-        self.y = array(list(self.y))
+        self.y = array(list(self.y))*10
         self.X = self.pipeline.fit_transform(self.X, self.y)
         self.model.fit(self.X, self.y)
         self.not_run = False
@@ -75,7 +75,7 @@ class linear():
             X_transformed = self.pipeline.transform(X)
         return self.model.score(X_transformed, y_transformed)
 
-    def top_tokens(self, ):
+    def top_tokens(self):
         """ Returns an array shaped (C, 2) for C distinct tokens in the vocabulary.
         Each pair is ordered word_pair, feature_importance, and is sorted in descending
         importances. """
@@ -84,3 +84,4 @@ class linear():
 
         return array(sorted(vstack((vocabulary, importances)).T,
                             key = lambda x: x[1]))[::-1]
+

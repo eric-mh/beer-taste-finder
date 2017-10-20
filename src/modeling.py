@@ -10,6 +10,9 @@ So far, this file contains:
 """
 from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import r2_score
+
+from numpy import zeros, maximum, array
 
 class LinearImportances():
     """ A wrapper for sklearn's LinearRegression that calculates feature importances
@@ -38,19 +41,36 @@ class LinearImportances():
 
 class NBImportances():
     """ A wrapepr for sklearn's MultinomialNB that calculates feature importances
-    as the total impact of that feature in the confidence of the model. """
+    as the total impact of that feature in the confidence of the model.
+
+    For now, calculates the positive impact of a feature instead of confidence to
+    avoid having to re-train the model for every column."""
     def __init__(self, **kwargs):
         self.nb_model = MultinomialNB(**kwargs)
         self.feature_importances_ = None
 
-    def _calc_importances(self):
-        pass
+    def _calc_importances(self, X, y):
+        token_frequencies = X.sum(axis = 0)
+
+        scores = []
+        empty = zeros(X.shape[0])
+        for col in range(X.shape[1]):
+            swap = X.T[col].copy()
+            X.T[col] = empty.copy()
+            # Net positive metric
+            scores.append(maximum(y - self.predict(X), empty).sum())
+            X.T[col] = swap
+
+        self.feature_importances_ = array(scores)/token_frequencies
 
     def fit(self, X, y):
-        pass
+        self.nb_model.fit(X, y.astype(int))
+        self._calc_importances(X, y)
+        return self
 
     def predict(self, X):
-        pass
+        return self.nb_model.predict(X)
 
     def score(self, X, y):
-        pass
+        return r2_score(y, self.predict(X), sample_weight=None,
+                        multioutput='variance_weighted')
