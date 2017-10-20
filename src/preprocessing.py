@@ -23,6 +23,9 @@ from numpy import array, hstack, vstack, min, in1d
 from spacy import load, attrs
 from sklearn.feature_extraction import text
 
+from time import time
+from sys import getsizeof
+
 from src.modeling import LinearImportances, NBImportances
 
 class DocTokenizer():
@@ -269,12 +272,37 @@ class SimplePipeline():
         return self.feature_vocabulary_
 
     def fit(self, X, y = None):
+        if self.write_stats:
+            return self.fit_with_stats(X, y)
         targets = array(list(y))
         self.intermediate = X
         for step in self.steps:
             self.intermediate = step.fit_transform(self.intermediate, targets)
         self._get_vocabulary()
         return self
+
+    def fit_with_stats(self, X, y = None):
+        line = "Step {}:\n\ttime: {} s, memory: {}\n"
+        file_out = open("pipeline_stats.md", 'w')
+        file_out.write("Running pipeline at {}\n".format(str(time())))
+
+        targets = array(list(y))
+        self.intermediate = X
+
+        file_out.write("Initial size of X, y objects: {} {}\n".format(
+                str(getsizeof(self.intermediate, 0)),
+                str(getsizeof(targets, 0))))
+
+        for step in self.steps:
+            t = time()
+            self.intermediate = step.fit_transform(self.intermediate, targets)
+            file_out.write(line.format(step, str(time() - t),
+                                       byte_to_larger(getsizeof(self.intermediate, 0))))
+        file_out.close()
+        self._get_vocabulary()
+        return self
+
+        
 
     def transform(self, X):
         self.intermediate = X
@@ -285,3 +313,11 @@ class SimplePipeline():
     def fit_transform(self, X, y = None):
         self.fit(X, y)
         return self.intermediate
+
+def byte_to_larger(bytes, order=['KB', 'MB', 'GB', 'TB'], current = 'B'):
+    "Quick and dirty bytes converter to make write_stats look cleaner."
+    next_num = bytes/1024.0
+    if next_num < 1.0:
+        return "{:.2f} {}".format(bytes, current)
+    else:
+        return byte_to_larger(next_num, order[1:], order[0])

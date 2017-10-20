@@ -47,19 +47,19 @@ class TestPipeline(unittest.TestCase):
     def test_run_linear(self):
         "Test to see if the basic linear pipeline can give results."
         mongo_gen = src.ratings_importer.MongoGenerator
-        filter_query = {'beer/style' : 'Kvass'}
+        filter_query = {'beer/style' : 'English Stout'}
         feature_key = 'review/text'
         target_key = 'review/taste'
 
-        data_X = mongo_gen(filter_query = None, key = feature_key, limit = 240)
-        data_y = mongo_gen(filter_query = None, key = target_key, limit = 240)
+        data_X = mongo_gen(filter_query = None, key = feature_key, limit = 3000)
+        data_y = mongo_gen(filter_query = None, key = target_key, limit = 3000)
 
         pipeline = src.preprocessing.SimplePipeline(
-            step_kwargs= [{'batch_size': 60, 'n_threads': 4, 'testing':True},
+            step_kwargs= [{'batch_size': 150, 'n_threads': 4, 'testing':True},
                            {'collection':[], 'collect_func': None, 'exclude': True},
                            {'threshold': 0.5, 'metric': None},
                            {'use_tfidfs': False}],
-            write_stats = False)
+            write_stats = True)
 
         pipeline_model = src.model_fitting.linear(pipeline = pipeline,
                                                   X = data_X,
