@@ -5,7 +5,7 @@ test: test_modeling test_preprocessing test_mongo test_pipeline
 test_modeling:
 	py.test tests/modeling_tests.py
 
-test_preprocessor:
+test_preprocessing:
 	py.test tests/preprocessor_tests.py
 
 test_mongo:
