@@ -2,8 +2,7 @@
 Stores all classes containing data to model pipelines.
 '''
 
-import preprocessing
-from numpy import array
+from numpy import array, vstack
 
 class linear():
     """ The linear pipeline is a first-pass at producing feature importances
@@ -25,17 +24,21 @@ class linear():
         predict(X): Predict targets of documents in X.
         score(X, y): Score model with unseen data.
         top_tokens(): Return a list of tokens in descending feature importances"""
-    def __init__(self, pipeline, X, y):
+    def __init__(self, pipeline, X, y, model):
         self.pipeline = pipeline
+        self.model = model()
         self.X = X
         self.y = y
 
-        self.is_run = False
+        self.not_run = True
 
     def _run(self):
         """ Run the linear model on the specified data using a specified preprocessor
         and on the specified data. Is required before any other method is called. """
-        pass
+        self.y = array(list(self.y))
+        self.X = self.pipeline.fit_transform(self.X, self.y)
+        self.model.fit(self.X, self.y)
+        self.not_run = False
 
     def predict(self,X):
         """
@@ -45,21 +48,39 @@ class linear():
         OUTPUT:
         -------
             y : array, target predictions for every document. """
-        pass
+        if self.not_run:
+            self._run()
+        X_transformed = self.pipeline.transform(X)
+        return self.model.predict(X_transformed)
 
-    def score(self, X, y):
+    def score(self, X = None, y = None):
         """
         INPUTS:
         -------
-            X: iter, an iterable object containing test documents.
-            y: iter, an iterable object containing true targets.
+            X: iter, (optional) an iterable object containing test documents.
+            y: iter, (optional) an iterable object containing true targets.
+        
+        If either X or y are None, .score will score on the training data.
+
         OUTPUT:
         -------
             score: float, The score of the model on X and y. """
-        pass
+        if self.not_run:
+            self._run()
+        if X == None or y == None:
+            y_transformed = self.y
+            X_transformed = self.X
+        else:
+            y_transformed = array(list(y))
+            X_transformed = self.pipeline.transform(X)
+        return self.model.score(X_transformed, y_transformed)
 
     def top_tokens(self, ):
         """ Returns an array shaped (C, 2) for C distinct tokens in the vocabulary.
         Each pair is ordered word_pair, feature_importance, and is sorted in descending
         importances. """
-        pass
+        importances = self.model.feature_importances_
+        vocabulary = self.pipeline.feature_vocabulary_
+
+        return array(sorted(vstack((vocabulary, importances)).T,
+                            key = lambda x: x[1]))[::-1]

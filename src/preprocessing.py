@@ -57,6 +57,11 @@ class DocTokenizer():
             vector : N, shape numpy array. """
         return matrix[min(matrix[:,1::], axis = 1) == 1][:,0]
 
+    def get_word(self, key):
+        # Note!: get_word is only partially complete. Fill tests to finish.
+        # Can't finish tests until clustering.
+        return self._parser.vocab[key].orth_
+
     def fit(self, X, y = None):
         return self
 
@@ -248,12 +253,27 @@ class SimplePipeline():
 
         self.write_stats = write_stats
         self.intermediate = None
+        self.feature_vocabulary_ = None
+
+    def _get_vocabulary(self):
+        # sklearn vectorizer is always the last step
+        vectorizer_vocab = self.steps[-1].vec.vocabulary_
+        # SpaCy tokenizer is always the first step
+        tokenizer = self.steps[0]
+
+        # Inefficient, reverse key_value pairs instead of sorting.
+        self.feature_vocabulary_ = []
+        for vocab_item in sorted(vectorizer_vocab.items(), key = lambda x: x[1]):
+            self.feature_vocabulary_.append(tokenizer.get_word(vocab_item[0]))
+
+        return self.feature_vocabulary_
 
     def fit(self, X, y = None):
         targets = array(list(y))
         self.intermediate = X
         for step in self.steps:
             self.intermediate = step.fit_transform(self.intermediate, targets)
+        self._get_vocabulary()
         return self
 
     def transform(self, X):

@@ -19,18 +19,22 @@ class LinearImportances():
         self.linear_model = LinearRegression(**kwargs)
         self.feature_importances_ = None
 
-    def _calc_importance(self):
-        pass
-
-    def fit(self, X, y):
-        self.linear_model.fit(X, y)
+    def _calc_importances(self, X, y):
         scores = (self.linear_model.coef_ + self.linear_model.intercept_)
         token_frequencies = X.sum(axis = 0)
         self.feature_importances_ = scores/token_frequencies
+        return self.feature_importances_
+
+    def fit(self, X, y):
+        self.linear_model.fit(X, y)
+        self._calc_importances(X, y)
         return self
 
     def predict(self, X):
         return self.linear_model.predict(X)
+
+    def score(self, X, y):
+        return self.linear_model.score(X, y)
 
 class NBImportances():
     """ A wrapepr for sklearn's MultinomialNB that calculates feature importances
@@ -39,8 +43,14 @@ class NBImportances():
         self.nb_model = MultinomialNB(**kwargs)
         self.feature_importances_ = None
 
-    def _calc_importance(self):
+    def _calc_importances(self):
         pass
 
     def fit(self, X, y):
+        pass
+
+    def predict(self, X):
+        pass
+
+    def score(self, X, y):
         pass

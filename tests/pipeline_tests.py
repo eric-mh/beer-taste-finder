@@ -3,7 +3,7 @@ Unit tests for the entire pipeline.
 Also tests individual model_fitting approaches in src/model_fitting.py
 Make test_pipeline to run
 '''
-from numpy import array
+from numpy import array, unicode_
 import unittest
 import src
 
@@ -19,7 +19,6 @@ class TestPipeline(unittest.TestCase):
         self.assertIsNotNone(src.preprocessing.SimplePipeline)
         self.assertIsNotNone(src.modeling.LinearImportances)
 
-#    @unittest.skip("skip to prioritize linear run")
     def test_preprocessing_pipe(self):
         "Mongo to vector matrix test"
         mongo_gen = src.ratings_importer.MongoGenerator
@@ -43,9 +42,8 @@ class TestPipeline(unittest.TestCase):
         self.assertIsNotNone(pipeline.fit_transform(data_fit_X, data_fit_y))
         self.assertIsNotNone(pipeline.transform(data_tfs_X))
         for word in pipeline.feature_vocabulary_:
-            self.assertEqual(type(word), unicode)
+            self.assertIn(type(word), [unicode_, unicode])
 
-    @unittest.skip("skip to prioritize the pipeline")
     def test_run_linear(self):
         "Test to see if the basic linear pipeline can give results."
         mongo_gen = src.ratings_importer.MongoGenerator
@@ -72,6 +70,6 @@ class TestPipeline(unittest.TestCase):
         # Assert training score is not zero and tokens are meaningful words.
         train_score = pipeline_model.score()
         self.assertTrue(train_score != None and train_score != 0)
-        top_10 = pipeline_model.top_tokens()[:10]
+        top_10 = pipeline_model.top_tokens()[:10].T[0]
         for token in top_10:
-            self.assertEqual(type(token), unicode)
+            self.assertIn(type(token), [unicode_, unicode])
