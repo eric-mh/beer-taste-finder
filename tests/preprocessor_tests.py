@@ -52,7 +52,7 @@ class TestPreprocessing(unittest.TestCase):
 
     def test_spacy_tokenizer(self):
         txt_document = unicode(load_txt('tests/test_document.txt'))
-        word_count = 16
+        word_count = 12
         txt_corpus = [txt_document, txt_document]
         
         tokenizer = src.preprocessing.DocTokenizer(testing = True)
