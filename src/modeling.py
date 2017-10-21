@@ -24,7 +24,7 @@ class LinearImportances():
 
     def _calc_importances(self, X, y):
         scores = (self.linear_model.coef_ + self.linear_model.intercept_)
-        token_frequencies = X.sum(axis = 0)
+        token_frequencies = (X > 0).sum(axis = 0)
         self.feature_importances_ = scores/token_frequencies
         return self.feature_importances_
 
@@ -50,18 +50,18 @@ class NBImportances():
         self.feature_importances_ = None
 
     def _calc_importances(self, X, y):
-        token_frequencies = X.sum(axis = 0)
+        token_frequencies = (X > 0).sum(axis = 0)
 
         scores = []
         empty = zeros(X.shape[0])
         for col in range(X.shape[1]):
             swap = X.T[col].copy()
             X.T[col] = empty.copy()
-            # Net positive metric
+            # Net metric
             scores.append(maximum(y - self.predict(X), empty).sum())
             X.T[col] = swap
 
-        self.feature_importances_ = array(scores)/token_frequencies
+        self.feature_importances_ = array(scores)*X.sum(axis = 0)
 
     def fit(self, X, y):
         self.nb_model.fit(X, y.astype(int))
