@@ -35,3 +35,8 @@ class TestModeling(unittest.TestCase):
         self.assertTrue(allclose(y, nb_wrapper.predict(X)))
         self.assertIsNotNone(nb_wrapper.feature_importances_)
         self.assertTrue(nb_wrapper.score(X, y) >= 0)
+
+    def test_classification_score(self):
+        nb_wrapper = src.modeling.NBImportances()
+        nb_wrapper.fit(X, y)
+        self.assertIsNotNone(nb_wrapper.score_(X, y))

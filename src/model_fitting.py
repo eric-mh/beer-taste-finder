@@ -58,7 +58,7 @@ class generic():
         X_transformed = self.pipeline.transform(X)
         return self.model.predict(X_transformed)
 
-    def score(self, X = None, y = None):
+    def score(self, X = None, y = None, classification = False):
         """
         INPUTS:
         -------
@@ -78,6 +78,8 @@ class generic():
         else:
             y_transformed = array(list(y))
             X_transformed = self.pipeline.transform(X)
+        if classification:
+            return self.model.score_(X_transformed, y_transformed)
         return self.model.score(X_transformed, y_transformed)
 
     def top_tokens(self):
