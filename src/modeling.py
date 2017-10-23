@@ -61,7 +61,8 @@ class NBImportances():
             scores.append(maximum(y - self.predict(X), empty).sum())
             X.T[col] = swap
 
-        self.feature_importances_ = array(scores)*X.sum(axis = 0)
+        f_importance = array(scores)*X.sum(axis = 0)
+        self.feature_importances_ = f_importance / f_importance.max()
 
     def fit(self, X, y):
         self.sk_model.fit(X, y.astype(int))
@@ -70,6 +71,9 @@ class NBImportances():
 
     def predict(self, X):
         return self.sk_model.predict(X)
+
+    def predict_proba(self, X):
+        return self.sk_model.predict_proba(X)
 
     def score_(self, X, y):
         return self.sk_model.score(X, y)

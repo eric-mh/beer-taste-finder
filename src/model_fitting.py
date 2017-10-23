@@ -58,6 +58,14 @@ class generic():
         X_transformed = self.pipeline.transform(X)
         return self.model.predict(X_transformed)
 
+    def predict_proba(self, X):
+        """ Uses NB to predict the probability of a multinomial label. Do
+        Not Use with a linear model selected. """
+        if self.not_run:
+            self._run()
+        X_transformed = self.pipeline.transform(X)
+        return self.model.predict_proba(X_transformed)
+
     def score(self, X = None, y = None, classification = False):
         """
         INPUTS:

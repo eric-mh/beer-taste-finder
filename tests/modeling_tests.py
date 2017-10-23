@@ -40,3 +40,4 @@ class TestModeling(unittest.TestCase):
         nb_wrapper = src.modeling.NBImportances()
         nb_wrapper.fit(X, y)
         self.assertIsNotNone(nb_wrapper.score_(X, y))
+        self.assertIsNotNone(nb_wrapper.predict_proba(X))
