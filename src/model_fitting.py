@@ -29,9 +29,9 @@ class generic():
         predict(X): Predict targets of documents in X.
         score(X, y): Score model with unseen data.
         top_tokens(): Return a list of tokens in descending feature importances"""
-    def __init__(self, pipeline, X, y, model):
+    def __init__(self, pipeline, X, y, model, **kwargs):
         self.pipeline = pipeline
-        self.model = model()
+        self.model = model(**kwargs)
         self.X = X
         self.y = y
 
@@ -44,6 +44,7 @@ class generic():
         self.X = self.pipeline.fit_transform(self.X, self.y)
         self.model.fit(self.X, self.y)
         self.not_run = False
+        import pdb; pdb.set_trace
 
     def predict(self,X):
         """
@@ -57,14 +58,6 @@ class generic():
             self._run()
         X_transformed = self.pipeline.transform(X)
         return self.model.predict(X_transformed)
-
-    def predict_proba(self, X):
-        """ Uses NB to predict the probability of a multinomial label. Do
-        Not Use with a linear model selected. """
-        if self.not_run:
-            self._run()
-        X_transformed = self.pipeline.transform(X)
-        return self.model.predict_proba(X_transformed)
 
     def score(self, X = None, y = None, classification = False):
         """

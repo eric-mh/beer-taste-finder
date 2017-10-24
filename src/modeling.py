@@ -12,7 +12,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import r2_score
 
-from numpy import zeros, maximum, minimum, array
+from numpy import zeros, maximum, minimum, array, dot
 
 class LinearImportances():
     """ A wrapper for sklearn's LinearRegression that calculates feature importances
@@ -45,8 +45,9 @@ class NBImportances():
 
     For now, calculates the positive impact of a feature instead of confidence to
     avoid having to re-train the model for every column."""
-    def __init__(self, **kwargs):
-        self.sk_model = MultinomialNB(**kwargs)
+    def __init__(self, expect_mode = False):
+        self.sk_model = MultinomialNB()
+        self.expect_mode = expect_mode
         self.feature_importances_ = None
 
     def _calc_importances(self, X, y):
@@ -70,7 +71,10 @@ class NBImportances():
         return self
 
     def predict(self, X):
-        return self.sk_model.predict(X)
+        if self.expect_mode:
+            return dot(self.sk_model.predict_proba(X), self.sk_model.classes_)
+        else:
+            return self.sk_model.predict(X)
 
     def predict_proba(self, X):
         return self.sk_model.predict_proba(X)
