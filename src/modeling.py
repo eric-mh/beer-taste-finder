@@ -9,7 +9,7 @@ So far, this file contains:
         * Calculate importances from a naive bayes multinomial classifier.
 """
 from sklearn.linear_model import LinearRegression
-from sklearn.naive_bayes import MultinomialNB, 
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import r2_score
 
 from numpy import zeros, maximum, minimum, array, dot
@@ -98,4 +98,4 @@ class NBExceptional():
         pass
 
     def fit(self, X, y):
-        
+        pass
