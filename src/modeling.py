@@ -9,7 +9,7 @@ So far, this file contains:
         * Calculate importances from a naive bayes multinomial classifier.
 """
 from sklearn.linear_model import LinearRegression
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB, 
 from sklearn.metrics import r2_score
 
 from numpy import zeros, maximum, minimum, array, dot
@@ -40,7 +40,7 @@ class LinearImportances():
         return self.linear_model.score(X, y)
 
 class NBImportances():
-    """ A wrapepr for sklearn's MultinomialNB that calculates feature importances
+    """ A wrapper for sklearn's MultinomialNB that calculates feature importances
     as the total impact of that feature in the confidence of the model.
 
     For now, calculates the positive impact of a feature instead of confidence to
@@ -85,3 +85,17 @@ class NBImportances():
     def score(self, X, y):
         return r2_score(y, self.predict(X), sample_weight=None,
                         multioutput='variance_weighted')
+
+class NBExceptional():
+    """ An experimental wrapper that only classifies beer reviews into two groups:
+    Mediocre and Truly exeptional beers. Calculates importance using the NB's
+    P(Truly Exceptional | Feature). """
+    def __init__(self):
+        self.sk_model = GaussianNB()
+        self.feature_importances_ = None
+
+    def _calc_importances():
+        pass
+
+    def fit(self, X, y):
+        

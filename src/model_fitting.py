@@ -37,6 +37,7 @@ class generic():
         and on the specified data. Is required before any other method is called. """
         self.y = array(list(self.y))*10
         self.X = self.pipeline.fit_transform(self.X, self.y)
+        import pdb; pdb.set_trace
         self.model.fit(self.X, self.y)
         self.not_run = False
         import pdb; pdb.set_trace
