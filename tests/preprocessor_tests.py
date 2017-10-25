@@ -161,3 +161,14 @@ class TestPreprocessing(unittest.TestCase):
         expected = array([True, True, True, True, True, False])
         actual = token_scores[1] >= threshold
         self.assertTrue(allequal(expected, actual))
+
+    def test_vectorizer(self):
+        corpus = array([[1,2,3,4],
+                        [1,2,5]])
+        vectorizer = src.preprocessing.TokenVectorizer(use_tfidfs = False,
+                                                       min_df = 2)
+
+        result = vectorizer.fit_transform(corpus)
+        self.assertEqual(result.shape[0], 2)
+
+        

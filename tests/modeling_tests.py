@@ -41,3 +41,10 @@ class TestModeling(unittest.TestCase):
         nb_wrapper.fit(X, y)
         self.assertIsNotNone(nb_wrapper.score_(X, y))
         self.assertIsNotNone(nb_wrapper.predict_proba(X))
+
+    def test_nbe_wrapper(self):
+        nbe_wrapper = src.modeling.NBExceptional()
+        nbe_wrapper.fit(X, y)
+        self.assertTrue(nbe_wrapper.score(X) >= 0)
+        self.assertIsNotNone(nbe_wrapper.predict_proba(X))
+        self.assertIsNotNone(nbe_wrapper.feature_importances_)
