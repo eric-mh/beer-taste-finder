@@ -11,6 +11,13 @@ from time import time
 
 from numpy import logspace
 
+def process_nbe_model(beer_style = 'English Stout', size = 2400):
+    """A simplified pipeline with exceptional/not exceptional labels,
+    and cutting out the most costly step in the preprocessor in favor of a simple
+    tfidfs excluder."""
+    mongo_gen = ratings_importer.MongoGenerator
+    filter_query = {'beer/style' : beer_style}
+
 def run_nb_pipeline(beer_style = 'English Stout', size = 2400):
     "Test to see if naive bayes can be used during model_fitting."
     mongo_gen = ratings_importer.MongoGenerator
