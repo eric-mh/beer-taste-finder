@@ -39,8 +39,8 @@ class TestMongoLoader(unittest.TestCase):
     def test_iter_db(self):
         """ Test if the wrapper is an iterator. """
         #Assumes test_filter_db works
-        filter = {'beer/style' : ['Rauchbier'],
-                  'beer/ABV' : [5.00]}
+        filter = {'style' : ['Rauchbier'],
+                  'ABV' : [5.00]}
         mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
 
         counts = 0
@@ -53,11 +53,11 @@ class TestMongoLoader(unittest.TestCase):
 
     def test_filter_db(self):
         """ Test if filtering works with the wrapper to query the database. """
-        filter = {'beer/style' : ['Rauchbier', 'Hefeweizen'],
-                  'beer/ABV' : [5.00]}
+        filter = {'style' : ['Rauchbier', 'Hefeweizen'],
+                  'ABV' : [5.00]}
         mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
 
-        expected_counts = 4511 + 64
+        expected_counts = 4512 + 64
         self.assertEqual(mongo_wrapper.count(),expected_counts)
 
     def test_key_db(self):
@@ -72,10 +72,10 @@ class TestMongoLoader(unittest.TestCase):
 
     def test_keys_db(self):
         """ Test if filtering and key-ing multiple return values works. """
-        filter = {'beer/style' : ['Rauchbier'],
-                  'beer/ABV' : [5.00]}
+        filter = {'style' : ['Rauchbier'],
+                  'ABV' : [5.00]}
         res = sorted([5.00, 'Rauchbier'])
-        key = ['beer/ABV', 'beer/style']
+        key = ['ABV', 'style']
         mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter,
                                                             key = key)
 

@@ -1,10 +1,12 @@
-Running pipeline at 1508546029.65
-Initial size of X, y objects: 64 2016
-Step <preprocessing.DocTokenizer instance at 0x12274c248>:
-	time: 5.34956216812 s, memory: 2.17 KB
-Step <preprocessing.TokenFilter instance at 0x1593f2e60>:
-	time: 0.0075318813324 s, memory: 1.97 KB
-Step <preprocessing.TemTokenPreprocessor instance at 0x1593e8c68>:
-	time: 0.140467882156 s, memory: 1.97 KB
-Step <preprocessing.TokenVectorizer instance at 0x1593f51b8>:
-	time: 0.0135550498962 s, memory: 4.31 MB
+Running pipeline at 1508958859.93
+Initial size of X, y objects: 64 19296
+Step <preprocessing.DocTokenizer instance at 0x7ff489c86ea8>:
+	time: 9.19290709496 s, memory: 20.56 KB
+Step <preprocessing.TokenFilter instance at 0x7ff489e922d8>:
+	time: 0.015524148941 s, memory: 18.84 KB
+Step <preprocessing.TemTokenPreprocessor instance at 0x7ff489e9cb00>:
+	time: 980.374260902 s, memory: 18.84 KB
+Step <preprocessing.TokenVectorizer instance at 0x7ff489e9cb48>:
+	time: 0.0186080932617 s, memory: 262.61 KB
+
+Time to run model: 990.325500011 s

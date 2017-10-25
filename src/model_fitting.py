@@ -3,11 +3,6 @@ Stores the complete data to model pipeline.
 '''
 
 from numpy import array, vstack
-import matplotlib.pyplot as plt
-
-def plot_score_dropoff(generic_model):
-    plt.plot(generic_model.top_tokens().T[1].astype(float))
-    plt.show()
 
 class generic():
     """ The linear pipeline is a first-pass at producing feature importances

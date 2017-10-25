@@ -27,7 +27,7 @@ from sklearn.feature_extraction import text
 from time import time
 from sys import getsizeof
 
-from src.modeling import LinearImportances, NBImportances
+from modeling import LinearImportances, NBImportances
 
 class DocTokenizer():
     """ The document tokenizer takes a corpus and tokenizes every document into

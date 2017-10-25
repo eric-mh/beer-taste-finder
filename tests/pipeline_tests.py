@@ -19,14 +19,13 @@ class TestPipeline(unittest.TestCase):
         self.assertIsNotNone(src.preprocessing.SimplePipeline)
         self.assertIsNotNone(src.modeling.LinearImportances)
 
-    @unittest.skip("prioritize nb")
     def test_preprocessing_pipe(self):
         "Mongo to vector matrix test"
         mongo_gen = src.ratings_importer.MongoGenerator
 
-        filter_query = {'beer/style' : 'Rauchbier'}
-        feature_key = 'review/text'
-        target_key = 'review/taste'
+        filter_query = {'style' : 'Rauchbier'}
+        feature_key = 'text'
+        target_key = 'taste'
 
         data_fit_X = mongo_gen(filter_query = None, key = feature_key, limit = 10)
         data_fit_y = mongo_gen(filter_query = None, key = target_key, limit = 10)
@@ -45,13 +44,12 @@ class TestPipeline(unittest.TestCase):
         for word in pipeline.feature_vocabulary_:
             self.assertIn(type(word), [unicode_, unicode])
 
-    @unittest.skip("prioritize nb")
     def test_run_linear(self):
         "Test to see if the basic linear pipeline can give results."
         mongo_gen = src.ratings_importer.MongoGenerator
-        filter_query = {'beer/style' : 'English Stout'}
-        feature_key = 'review/text'
-        target_key = 'review/taste'
+        filter_query = {'style' : 'English Stout'}
+        feature_key = 'text'
+        target_key = 'taste'
 
         data_X = mongo_gen(filter_query = None, key = feature_key, limit = 240)
         data_y = mongo_gen(filter_query = None, key = target_key, limit = 240)
@@ -80,9 +78,9 @@ class TestPipeline(unittest.TestCase):
     def test_run_nb(self):
         "Test to see if naive bayes can be used during model_fitting."
         mongo_gen = src.ratings_importer.MongoGenerator
-        filter_query = {'beer/style' : 'English Stout'}
-        feature_key = 'review/text'
-        target_key = 'review/taste'
+        filter_query = {'style' : 'English Stout'}
+        feature_key = 'text'
+        target_key = 'taste'
 
         data_X = mongo_gen(filter_query = None, key = feature_key, limit = 240)
         data_y = mongo_gen(filter_query = None, key = target_key, limit = 240)

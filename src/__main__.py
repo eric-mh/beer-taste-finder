@@ -6,7 +6,6 @@ import modeling
 import preprocessing
 import model_fitting
 
-from model_fitting import plot_score_dropoff
 from time import time
 
 from numpy import logspace
@@ -14,9 +13,9 @@ from numpy import logspace
 def run_nb_pipeline(beer_style = 'English Stout', size = 2400):
     "Test to see if naive bayes can be used during model_fitting."
     mongo_gen = ratings_importer.MongoGenerator
-    filter_query = {'beer/style' : beer_style}
-    feature_key = 'review/text'
-    target_key = 'review/taste'
+    filter_query = {'style' : beer_style}
+    feature_key = 'text'
+    target_key = 'taste'
 
     data_X = mongo_gen(filter_query = filter_query, key = feature_key, limit = size)
     data_y = mongo_gen(filter_query = filter_query, key = target_key, limit = size)
@@ -42,9 +41,9 @@ def run_nb_pipeline(beer_style = 'English Stout', size = 2400):
 
 def run_nb_tsearch(beer_style = 'English Stout', size = 240):
     mongo_gen = ratings_importer.MongoGenerator
-    filter_query = {'beer/style' : beer_style}
-    feature_key = 'review/text'
-    target_key = 'review/taste'
+    filter_query = {'style' : beer_style}
+    feature_key = 'text'
+    target_key = 'taste'
 
     data_X = list(mongo_gen(filter_query = filter_query, key = feature_key, limit = size))
     data_y = list(mongo_gen(filter_query = filter_query, key = target_key, limit = size))
