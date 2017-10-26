@@ -18,6 +18,21 @@ class TestPipeline(unittest.TestCase):
         self.assertIsNotNone(src.preprocessing.SimplePipeline)
         self.assertIsNotNone(src.modeling.LinearImportances)
 
+    def test_generic_NBE(self):
+        """ Test the production model, Generic NBE. Checks if cv_score exists as a 
+        method and if the exclusion list works. """
+        X = ["Document1 A B C","Document2 A B D", "Document 2 B D"]
+        y = [1,2]
+        estimator = src.model_fitting.genericNBE(n_jobs = 1,
+                                                 max_df = None
+                                                 min_df = None
+                                                 exclude = ['A'],
+                                                 model = src.modeling.NBExceptional)
+        estimator.fit(X, y)
+        self.assertTrue(estimator.score(X, y) != 0)
+        self.assertEquals(estimator.score(), estimator.score(X, y))
+        self.assertEquals(estimator.predict(X)[1], estimator.predict(X)[0])
+
     def test_NBE_preprocessing(self):
         "Complete test of NBE preprocessing. "
         mongo_gen = src.ratings_importer.MongoGenerator

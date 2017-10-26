@@ -17,6 +17,12 @@ class TestMongoLoader(unittest.TestCase):
         self.assertTrue(mongo_names.database in mongo_wrapper.client.database_names())
         self.assertTrue(mongo_names.collection in mongo_wrapper.database.collection_names())
 
+    def test_mongoload(self):
+        "Test the combined mongo loader that can return a list of documents and labels."
+        beer_style = 'Kvass'; feature = 'text'; target = 'taste'; limit = None
+        X, y = src.ratings_importer.MongoLoad(beer_style, feature, target, limit).T
+        self.assertEqual(len(X), len(y))
+
     def test_expand_query(self):
         """ Test to see if query dictionaries are being correctly expanded into
         SON filter objects. """
