@@ -320,6 +320,19 @@ class SimplePipeline():
         self.fit(X, y)
         return self.intermediate
 
+class NbePipeline(SimplePipeline):
+    """ An even simpler pipeline that skips the metric filter in SimplePipeline. """
+    def __init__(self, step_kwargs, write_stats = False):
+        step_refs = [DocTokenizer, TokenFilter, TokenVectorizer]
+
+        self.steps = []
+        for step_kwarg, step_ref in zip(step_kwargs, step_refs):
+            self.steps.append(step_ref(**step_kwarg))
+
+        self.write_stats = write_stats
+        self.intermediate = None
+        self.feature_vocabulary_ = None
+
 def byte_to_larger(bytes, order=['KB', 'MB', 'GB', 'TB'], current = 'B'):
     "Quick and dirty bytes converter to make write_stats look cleaner."
     next_num = bytes/1024.0
