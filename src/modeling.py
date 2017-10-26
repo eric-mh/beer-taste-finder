@@ -98,15 +98,17 @@ class NBExceptional():
         self._top_threshold = top_threshold
 
     def _calc_importances(self, X, y):
-        p_token = X.sum(axis = 0) / X.sum()
+        p_token = 1 / float(X.sum())
         p_excpt = (y >= self.score_threshold_).mean()
+        # P(rate high score | token TFIDF) * token TFIDF 
+        # or TFIDF-weighted token importances
         self.feature_importances_ = (self.sk_model.theta_.mean(axis = 0)/p_token)*p_excpt
 
     def fit(self, X, y):
         top_score_n = int(self._top_threshold * len(y))
         self.score_threshold_ = asarray(sorted(y))[-top_score_n:].mean()
         self.sk_model.fit(X, y >= self.score_threshold_)
-        self._calc_importances(X, y >= self.score_threshold_)
+        self._calc_importances(X, y)
         return self
 
     def predict(self, X):

@@ -16,6 +16,23 @@ def process_nbe_model(beer_style = 'English Stout', size = 2400):
     tfidfs excluder."""
     mongo_gen = ratings_importer.MongoGenerator
     filter_query = {'beer/style' : beer_style}
+    feature_key = 'text'; target_key = 'taste'
+    data_X = mongo_gen(filter_query = None, key = feature_key, limit = size)
+    data_y = mongo_gen(filter_query = None, key = target_key, limit = size)
+
+    pipeline = preprocessing.NbePipeline(
+        step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
+                       {'collection':[], 'collect_func': None, 'exclude': True},
+                       {'use_tfidfs': True}],
+        write_stats = False)
+    pipeline_model = model_fitting.generic(pipeline = pipeline,
+                                           X = data_X,
+                                           y = data_y,
+                                           model = modeling.NBExceptional)
+    t = time()
+    pipeline_model._run()
+    print("Time to run model: {} s".format(time() - t))
+    return pipeline_model
 
 def run_nb_pipeline(beer_style = 'English Stout', size = 2400):
     "Test to see if naive bayes can be used during model_fitting."
