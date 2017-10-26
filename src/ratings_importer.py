@@ -67,9 +67,16 @@ class MongoGenerator(object):
         if self.key is None:
             return self.chained_cursors.next()
         elif type(self.key) == list:
-            return [self.chained_cursors.next()[key] for key in self.key]
+            return [self._skey_return(self.chained_cursors.next(),key) for key in self.key]
         else:
-            return self.chained_cursors.next()[self.key]
+            return self._skey_return(self.chained_cursors.next(),self.key)
+
+    def _skey_return(self,dict, key):
+        "Special key indexer that deals with dictionaries possibly not having an entry"
+        if key in dict.keys():
+            return dict[key]
+        else:
+            return u' '
 
     def count(self):
         if self.limit is None:

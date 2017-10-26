@@ -10,21 +10,21 @@ from time import time
 
 from numpy import logspace
 
-def process_nbe_model(beer_style = 'English Stout', size = 2400):
+def process_nbe_model(beer_style = 'American Stout', limit = 24538):
     """A simplified pipeline with exceptional/not exceptional labels,
     and cutting out the most costly step in the preprocessor in favor of a simple
     tfidfs excluder."""
     mongo_gen = ratings_importer.MongoGenerator
-    filter_query = {'beer/style' : beer_style}
+    filter_query = {'style' : beer_style}
     feature_key = 'text'; target_key = 'taste'
-    data_X = mongo_gen(filter_query = None, key = feature_key, limit = size)
-    data_y = mongo_gen(filter_query = None, key = target_key, limit = size)
+    data_X = mongo_gen(filter_query = None, key = feature_key, limit = limit)
+    data_y = mongo_gen(filter_query = None, key = target_key, limit = limit)
 
     pipeline = preprocessing.NbePipeline(
-        step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
+        step_kwargs = [{'batch_size': 800, 'n_threads': 16, 'testing': False},
                        {'collection':[], 'collect_func': None, 'exclude': True},
                        {'use_tfidfs': True}],
-        write_stats = False)
+        write_stats = True)
     pipeline_model = model_fitting.generic(pipeline = pipeline,
                                            X = data_X,
                                            y = data_y,
