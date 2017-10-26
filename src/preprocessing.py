@@ -143,14 +143,16 @@ class TokenVectorizer():
     PARAMETERS:
     -----------
         use_tfidfs: boolean, optional; use TfidfVectorizer if true. """
-    def __init__(self, use_tfidfs = False):
+    def __init__(self, use_tfidfs = False, **kwargs):
         override = lambda x: x
         if use_tfidfs:
             self.vec = text.TfidfVectorizer(preprocessor = override,
-                                            tokenizer = override)
+                                            tokenizer = override,
+                                            **kwargs)
         else:
             self.vec = text.CountVectorizer(preprocessor = override,
-                                            tokenizer = override)
+                                            tokenizer = override,
+                                            **kwargs)
 
     def fit(self, X, y = None):
         """ Fit the vectorizer to a document. """

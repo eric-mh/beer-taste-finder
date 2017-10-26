@@ -9,10 +9,10 @@ So far, this file contains:
         * Calculate importances from a naive bayes multinomial classifier.
 """
 from sklearn.linear_model import LinearRegression
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import r2_score
+from sklearn.naive_bayes import MultinomialNB, GaussianNB
+from sklearn.metrics import r2_score, roc_auc_score
 
-from numpy import zeros, maximum, minimum, array, dot
+from numpy import zeros, maximum, minimum, array, dot, asarray
 
 class LinearImportances():
     """ A wrapper for sklearn's LinearRegression that calculates feature importances
@@ -88,14 +88,35 @@ class NBImportances():
 
 class NBExceptional():
     """ An experimental wrapper that only classifies beer reviews into two groups:
-    Mediocre and Truly exeptional beers. Calculates importance using the NB's
-    P(Truly Exceptional | Feature). """
-    def __init__(self):
+    mediocre and truly exeptional beers. Calculates importance as the 1 - the
+    likelyhood P( """
+    def __init__(self, top_threshold = .1):
         self.sk_model = GaussianNB()
         self.feature_importances_ = None
+        self.score_threshold_ = None
 
-    def _calc_importances():
-        pass
+        self._top_threshold = top_threshold
+
+    def _calc_importances(self, X, y):
+        p_token = X.sum(axis = 0) / X.sum()
+        p_excpt = (y >= self.score_threshold_).mean()
+        self.feature_importances_ = (self.sk_model.theta_.mean(axis = 0)/p_token)*p_excpt
 
     def fit(self, X, y):
-        pass
+        top_score_n = int(self._top_threshold * len(y))
+        self.score_threshold_ = asarray(sorted(y))[-top_score_n:].mean()
+        self.sk_model.fit(X, y >= self.score_threshold_)
+        self._calc_importances(X, y >= self.score_threshold_)
+        return self
+
+    def predict(self, X):
+        return self.predict_proba(X) >= self.score_threshold_
+
+    def predict_proba(self, X):
+        return self.sk_model.predict_proba(X).T[1]
+
+    def score(self, X, y):
+        """Calculate ROC AUC."""
+        true_labels = y >= self.score_threshold_
+        pred_prob = self.predict_proba(X)
+        return roc_auc_score(true_labels, pred_prob)
