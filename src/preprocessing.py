@@ -320,7 +320,7 @@ class SimplePipeline():
         self.fit(X, y)
         return self.intermediate
 
-class NbePipeline(SimplePipeline):
+class NbePreprocessor(SimplePipeline):
     """ An even simpler pipeline that skips the metric filter in SimplePipeline. """
     def __init__(self, step_kwargs, write_stats = False):
         step_refs = [DocTokenizer, TokenFilter, TokenVectorizer]

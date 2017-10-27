@@ -18,6 +18,10 @@ def expand_queries(filter_query):
             filter_query[key] = [filter_query[key]]
     return list(ParameterGrid(filter_query))
 
+def mongo_loader(key = None, filter = None, feature = 'text', target = 'taste',
+                 limit = None):
+    pass
+
 class MongoNames():
     """ Holds the names of the mongo database and collection. """
     def __init__(self):
