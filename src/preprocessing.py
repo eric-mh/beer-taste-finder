@@ -280,10 +280,9 @@ class SimplePipeline():
     def fit(self, X, y = None):
         if self.write_stats:
             return self.fit_with_stats(X, y)
-        targets = array(list(y))
         self.intermediate = X
         for step in self.steps:
-            self.intermediate = step.fit_transform(self.intermediate, targets)
+            self.intermediate = step.fit_transform(self.intermediate)
         self._get_vocabulary()
         return self
 
