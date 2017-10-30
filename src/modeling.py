@@ -14,6 +14,7 @@ from sklearn.metrics import r2_score, roc_auc_score
 
 from numpy import zeros, maximum, minimum, array, dot, asarray
 
+# Note: deprecated, do not use!
 class LinearImportances():
     """ A wrapper for sklearn's LinearRegression that calculates feature importances
     as their corresponding beta cofficients divided by the sum of its frequency in

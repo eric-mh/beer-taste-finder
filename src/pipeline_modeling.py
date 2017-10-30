@@ -3,32 +3,38 @@ Stores the complete data to model pipeline.
 '''
 
 from numpy import array, vstack
+import preprocessing
+pipeline_const = preprocessing.SimplePipeline
 
 class generic():
-    """ The linear pipeline is a first-pass at producing feature importances
-    from the reviews data and a RMSE score for the goodness-of-fit. As a first-pass
-    approach, it:
-        - Skips out meaningful token filtering during preprocessing.
-        - Uses a short-cut to value importances (beta coefficients) instead of
-          calculating the effect of the feature on the model itself.
-        - Does no clustering of either the beers nor the tokens.
+    """
 
-    As a regressor, it uses token counts as features to predict the beer aroma score.
+
+
+
+
+
+
+
     PARAMETERS:
     -----------
-        pipeline : SimplePipeline instance that contains all preprocessing steps.
-        X : iter, an iterable object containing documents in unicode.
-        y : iter, an iterable object containing targets for each document.
+
+
+
     METHODS:
     --------
-        predict(X): Predict targets of documents in X.
-        score(X, y): Score model with unseen data.
-        top_tokens(): Return a list of tokens in descending feature importances"""
-    def __init__(self, pipeline, X, y, model, **kwargs):
-        self.pipeline = pipeline
-        self.model = model(**kwargs)
-        self.X = X
-        self.y = y
+
+
+    """
+    def __init__(self, model, excludes = [], min_df = None, max_df = None):
+        if max_df == None: max_df = 1.0
+        if min_df == None: min_df = 1
+        self.pipeline = pipeline_const([{'batch_size' : 800, 'n_threads' : 16},
+                                        {'collection' : excludes},
+                                        {'use_tfidfs' : True,
+                                         'min_df' : min_df, 'max_df' : max_df}],
+                                       write_stats = False)
+        self.model = model()
 
         self.not_run = True
 
