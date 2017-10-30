@@ -6,22 +6,29 @@ To run: make test_mongo
 import unittest
 import src
 
-src.load_ratings_importer()
+src.load_mongo_interface()
 
 class TestMongoLoader(unittest.TestCase):
     def test_exists_db(self):
         """ Double check to see if the named database and collection exist. """
-        mongo_wrapper = src.ratings_importer.MongoGenerator()
-        mongo_names = src.ratings_importer.MongoNames()
+        mongo_wrapper = src.mongo_interface.MongoGenerator()
+        mongo_names = src.mongo_interface.MongoNames()
 
         self.assertTrue(mongo_names.database in mongo_wrapper.client.database_names())
         self.assertTrue(mongo_names.collection in mongo_wrapper.database.collection_names())
 
-    def test_mongoload(self):
-        "Test the combined mongo loader that can return a list of documents and labels."
-        beer_style = 'Kvass'; feature = 'text'; target = 'taste'; limit = None
-        X, y = src.ratings_importer.MongoLoad(beer_style, feature, target, limit).T
-        self.assertEqual(len(X), len(y))
+    def test_mongo_loader(self):
+        """ Test if the new mongo_loader function works as expeced. """
+        mongo_loader = src.mongo_interface.mongo_loader
+        X, y = mongo_loader(key = 'style', filter = 'Kvass')
+        self.assertEqual(len(X), 297)
+        self.assertTrue(type(X.tolist()[0]) == unicode)
+
+    def test_mongo_skip(self):
+        """ Test if the mongo interface skips data points with empty text or tastes. """
+        mongo_loader = src.mongo_interface.mongo_loader
+        X, y = mongo_loader(key = 'style', filter = 'Hefeweizen')
+        self.assertTrue(len(X) < 27909)
 
     def test_expand_query(self):
         """ Test to see if query dictionaries are being correctly expanded into
@@ -34,11 +41,11 @@ class TestMongoLoader(unittest.TestCase):
         queries = [{'key_alpha' : 'alpha_a', 'key_numeric': 'num_1'},
                    {'key_alpha' : 'alpha_b', 'key_numeric': 'num_1'}]
 
-        queries_s = src.ratings_importer.expand_queries(filter_s)
+        queries_s = src.mongo_interface.expand_queries(filter_s)
         for q_e, q_a in zip(sorted(queries_s), sorted(queries)):
             self.assertEqual(q_e, q_a)
 
-        queries_t = src.ratings_importer.expand_queries(filter_t)
+        queries_t = src.mongo_interface.expand_queries(filter_t)
         for q_e, q_a in zip(sorted(queries_s), sorted(queries)):
             self.assertEqual(q_e, q_a)
 
@@ -47,7 +54,7 @@ class TestMongoLoader(unittest.TestCase):
         #Assumes test_filter_db works
         filter = {'style' : ['Rauchbier'],
                   'ABV' : [5.00]}
-        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
+        mongo_wrapper = src.mongo_interface.MongoGenerator(filter_query = filter)
 
         counts = 0
         for review in mongo_wrapper:
@@ -61,7 +68,7 @@ class TestMongoLoader(unittest.TestCase):
         """ Test if filtering works with the wrapper to query the database. """
         filter = {'style' : ['Rauchbier', 'Hefeweizen'],
                   'ABV' : [5.00]}
-        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter)
+        mongo_wrapper = src.mongo_interface.MongoGenerator(filter_query = filter)
 
         expected_counts = 4512 + 64
         self.assertEqual(mongo_wrapper.count(),expected_counts)
@@ -70,7 +77,7 @@ class TestMongoLoader(unittest.TestCase):
         """ Test if filtering and key-ing return values works. """
         filter = {'beer/style' : ['Rauchbier'],
                   'beer/ABV' : [5.00]}
-        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter,
+        mongo_wrapper = src.mongo_interface.MongoGenerator(filter_query = filter,
                                                             key = 'beer/ABV')
 
         for beer_abv in mongo_wrapper:
@@ -82,7 +89,7 @@ class TestMongoLoader(unittest.TestCase):
                   'ABV' : [5.00]}
         res = sorted([5.00, 'Rauchbier'])
         key = ['ABV', 'style']
-        mongo_wrapper = src.ratings_importer.MongoGenerator(filter_query = filter,
+        mongo_wrapper = src.mongo_interface.MongoGenerator(filter_query = filter,
                                                             key = key)
 
         for data_point in mongo_wrapper:
@@ -91,7 +98,7 @@ class TestMongoLoader(unittest.TestCase):
     def test_limit_db(self):
         """ Test setting limits on arbitrary queries. """
         limit = 10
-        mongo_wrapper = src.ratings_importer.MongoGenerator(limit = limit)
+        mongo_wrapper = src.mongo_interface.MongoGenerator(limit = limit)
 
         self.assertEqual(len(mongo_wrapper), limit)
         self.assertEqual(len([i for i in mongo_wrapper]), limit)

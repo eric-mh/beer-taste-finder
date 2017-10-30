@@ -3,14 +3,15 @@ Unit tests for preprocessor classes in src/preprocessor.py
 Also tests model pipelines in src/model_fitting.py
 To run: make test_preprocessing
 '''
-from numpy import arange, array, ndarray
+from numpy import arange, array, ndarray, unicode_
 from numpy.ma import allequal
 from numpy import in1d
 import unittest as unittest
 import src
 
 src.load_preprocessing()
-src.load_model_fitting()
+src.load_pipeline_model()
+src.load_mongo_interface()
 
 def load_txt(filename):
     file_object = file(filename)
@@ -167,8 +168,21 @@ class TestPreprocessing(unittest.TestCase):
                         [1,2,5]])
         vectorizer = src.preprocessing.TokenVectorizer(use_tfidfs = False,
                                                        min_df = 2)
-
         result = vectorizer.fit_transform(corpus)
         self.assertEqual(result.shape[0], 2)
 
-        
+    def test_simple_pipeline(self):
+        "Mongo to vector matrix test"
+        mongo_load = src.mongo_interface.mongo_loader
+        X, y = mongo_load(feature = 'text', target = 'taste', limit = 10)
+
+        pipeline = src.preprocessing.SimplePipeline(
+            step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
+                           {'collection':[], 'collect_func': None, 'exclude': True},
+                           {'use_tfidfs': False}],
+            write_stats = False)
+
+        self.assertIsNotNone(pipeline.fit_transform(X, y))
+        self.assertIsNotNone(pipeline.transform(X))
+        for word in pipeline.feature_vocabulary_:
+            self.assertIn(type(word), [unicode_, unicode])

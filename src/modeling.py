@@ -14,6 +14,7 @@ from sklearn.metrics import r2_score, roc_auc_score
 
 from numpy import zeros, maximum, minimum, array, dot, asarray
 
+# Note: deprecated, do not use!
 class LinearImportances():
     """ A wrapper for sklearn's LinearRegression that calculates feature importances
     as their corresponding beta cofficients divided by the sum of its frequency in
@@ -102,7 +103,8 @@ class NBExceptional():
         p_excpt = (y >= self.score_threshold_).mean()
         # P(rate high score | token TFIDF) * token TFIDF 
         # or TFIDF-weighted token importances
-        self.feature_importances_ = (self.sk_model.theta_.mean(axis = 0)/p_token)*p_excpt
+        self.feature_importances_ = \
+            (self.sk_model.theta_.mean(axis = 0) / p_token) * p_excpt / len(X)
 
     def fit(self, X, y):
         top_score_n = int(self._top_threshold * len(y))
@@ -121,4 +123,9 @@ class NBExceptional():
         """Calculate ROC AUC."""
         true_labels = y >= self.score_threshold_
         pred_prob = self.predict_proba(X)
-        return roc_auc_score(true_labels, pred_prob)
+        if true_labels.min() == True:
+            return 1
+        elif true_labels.max() == False:
+            return 0
+        else:
+            return roc_auc_score(true_labels, pred_prob)

@@ -7,142 +7,54 @@ from numpy import array, unicode_
 import unittest
 import src
 
+src.load_modeling()
+src.load_pipeline_model()
+src.load_mongo_interface()
 src.load_preprocessing()
-src.load_ratings_importer()
-src.load_model_fitting()
+
+X, y = src.mongo_interface.mongo_loader(limit = 80)
+NBI = src.modeling.NBImportances
+NBX = src.modeling.NBExceptional
+generic = src.pipeline_modeling.generic
+
+cv_scorer = src.pipeline_modeling.cv_scorer
 
 class TestPipeline(unittest.TestCase):
-    def test_loaded(self):
-        "All required modules are loaded"
-        self.assertIsNotNone(src.ratings_importer.MongoGenerator)
-        self.assertIsNotNone(src.preprocessing.SimplePipeline)
-        self.assertIsNotNone(src.modeling.LinearImportances)
-
-    def test_generic_NBE(self):
-        """ Test the production model, Generic NBE. Checks if cv_score exists as a 
-        method and if the exclusion list works. """
-        X = ["Document1 A B C","Document2 A B D", "Document 2 B D"]
-        y = [1,2]
-        estimator = src.model_fitting.genericNBE(n_jobs = 1,
-                                                 max_df = None
-                                                 min_df = None
-                                                 exclude = ['A'],
-                                                 model = src.modeling.NBExceptional)
-        estimator.fit(X, y)
-        self.assertTrue(estimator.score(X, y) != 0)
-        self.assertEquals(estimator.score(), estimator.score(X, y))
-        self.assertEquals(estimator.predict(X)[1], estimator.predict(X)[0])
-
-    def test_NBE_preprocessing(self):
+    def pipeline_test_wrapper(self, model):
         "Complete test of NBE preprocessing. "
-        mongo_gen = src.ratings_importer.MongoGenerator
-        filter_query = {'style' : 'Kvass'}
-        feature_key = 'text'; target_key = 'taste'
-        data_X = mongo_gen(filter_query = None, key = feature_key, limit = 10)
-        data_y = mongo_gen(filter_query = None, key = target_key, limit = 10)
+        pipeline_model = generic(excludes = [],
+                                 min_df = None, max_df = None,
+                                 model = model)
 
-        pipeline = src.preprocessing.NbePipeline(
-            step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
-                           {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'use_tfidfs': False}],
-            write_stats = False)
-        pipeline_model = src.model_fitting.generic(pipeline = pipeline,
-                                                   X = data_X,
-                                                   y = data_y,
-                                                   model = src.modeling.NBExceptional)
-        pipeline_model._run()
-
-        # Same assertions as in the linear test
-        train_score = pipeline_model.score()
-        self.assertTrue(train_score != None and train_score != 0)
+        self.assertIsNotNone(pipeline_model.get_params())
+        pipeline_model.fit(X, y)
+        self.assertTrue(pipeline_model.score(X, y) != 0)
         top_10 = pipeline_model.top_tokens()[:10].T[0]
         for token in top_10:
             self.assertIn(type(token), [unicode_, unicode])
+        self.assertTrue(cv_scorer(pipeline_model, X, y).mean() != 0)
+    
+    def test_early_preprocessor(self):
+        pipeline_const = src.preprocessing.SimplePipeline
+        pipeline = pipeline_const([{'batch_size' : 1, 'n_threads' : 1, 'testing' : True},
+                                   {'collection' : []},
+                                   {'use_tfidfs' : False,
+                                    'max_df' : 1.0, 'min_df' : 1}],
+                                  write_stats = False)
+        self.assertIsNotNone(pipeline.fit_transform(X[:10]))
+        self.assertIsNotNone(pipeline.transform(X))
 
-    @unittest.skip("prioritize NBE")
-    def test_preprocessing_pipe(self):
-        "Mongo to vector matrix test"
-        mongo_gen = src.ratings_importer.MongoGenerator
+    @unittest.skip("Only included for completeness")
+    def test_NBEcp_pipeline(self):
+        self.pipeline_test_wrapper(NBI)
 
-        filter_query = {'style' : 'Rauchbier'}
-        feature_key = 'text'
-        target_key = 'taste'
+    def test_NBI_pipeline(self):
+        self.pipeline_test_wrapper(NBX)
 
-        data_fit_X = mongo_gen(filter_query = None, key = feature_key, limit = 10)
-        data_fit_y = mongo_gen(filter_query = None, key = target_key, limit = 10)
+    @unittest.skip("Unimplemented")
+    def test_NBE_pipeline(self):
+        self.pipeline_test_wrapper(NBE)
 
-        data_tfs_X = mongo_gen(filter_query = filter_query, key = feature_key, limit = 5)
-
-        pipeline = src.preprocessing.SimplePipeline(
-            step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
-                           {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'threshold': 0.5, 'metric': None},
-                           {'use_tfidfs': False}],
-            write_stats = False)
-
-        self.assertIsNotNone(pipeline.fit_transform(data_fit_X, data_fit_y))
-        self.assertIsNotNone(pipeline.transform(data_tfs_X))
-        for word in pipeline.feature_vocabulary_:
-            self.assertIn(type(word), [unicode_, unicode])
-
-    @unittest.skip("prioritize NBE")
-    def test_run_linear(self):
-        "Test to see if the basic linear pipeline can give results."
-        mongo_gen = src.ratings_importer.MongoGenerator
-        filter_query = {'style' : 'English Stout'}
-        feature_key = 'text'
-        target_key = 'taste'
-
-        data_X = mongo_gen(filter_query = None, key = feature_key, limit = 240)
-        data_y = mongo_gen(filter_query = None, key = target_key, limit = 240)
-
-        pipeline = src.preprocessing.SimplePipeline(
-            step_kwargs= [{'batch_size': 30, 'n_threads': 4, 'testing':True},
-                           {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'threshold': 0.5, 'metric': None},
-                           {'use_tfidfs': False}],
-            write_stats = True)
-
-        pipeline_model = src.model_fitting.generic(pipeline = pipeline,
-                                                   X = data_X,
-                                                   y = data_y,
-                                                   model = src.modeling.LinearImportances)
-        pipeline_model._run()
-
-        # Assert training score is not zero and tokens are meaningful words.
-        train_score = pipeline_model.score()
-        self.assertTrue(train_score != None and train_score != 0)
-        top_10 = pipeline_model.top_tokens()[:10].T[0]
-        for token in top_10:
-            self.assertIn(type(token), [unicode_, unicode])
-
-    @unittest.skip("priotize NBE")
-    def test_run_nb(self):
-        "Test to see if naive bayes can be used during model_fitting."
-        mongo_gen = src.ratings_importer.MongoGenerator
-        filter_query = {'style' : 'English Stout'}
-        feature_key = 'text'
-        target_key = 'taste'
-
-        data_X = mongo_gen(filter_query = None, key = feature_key, limit = 240)
-        data_y = mongo_gen(filter_query = None, key = target_key, limit = 240)
-
-        pipeline = src.preprocessing.SimplePipeline(
-            step_kwargs= [{'batch_size': 30, 'n_threads': 4, 'testing':True},
-                           {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'threshold': 0.5, 'metric': None},
-                           {'use_tfidfs': False}],
-            write_stats = True)
-
-        pipeline_model = src.model_fitting.generic(pipeline = pipeline,
-                                                   X = data_X,
-                                                   y = data_y,
-                                                   model = src.modeling.NBImportances)
-        pipeline_model._run()
-
-        # Assert training score is not zero and tokens are meaningful words.
-        train_score = pipeline_model.score()
-        self.assertTrue(train_score != None and train_score != 0)
-        top_10 = pipeline_model.top_tokens()[:10].T[0]
-        for token in top_10:
-            self.assertIn(type(token), [unicode_, unicode])
+    @unittest.skip("Unimplemented")
+    def test_NBB_pipeline(self):
+        self.pipeline_test_wrapper(NBB)

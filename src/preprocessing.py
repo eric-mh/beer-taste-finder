@@ -26,8 +26,7 @@ from sklearn.feature_extraction import text
 
 from time import time
 from sys import getsizeof
-
-from modeling import LinearImportances, NBImportances
+from modeling import LinearImportances #Replace after cleaning tests
 
 class DocTokenizer():
     """ The document tokenizer takes a corpus and tokenizes every document into
@@ -80,6 +79,7 @@ class DocTokenizer():
         OUTPUTS:
         --------
             X : The transformed corpus. """
+        X = array(X).astype(unicode).tolist() # Force change numpy.unicode to unicode
         collector = [] # Inefficient
         corpus = self._parser.pipe(X, self._batch_size, self._n_threads)
 
@@ -254,7 +254,7 @@ class SimplePipeline():
         write_stats: boolean, (optional default False),
             Flag to write stats or not during the evaluation of each step. """
     def __init__(self, step_kwargs, write_stats = False):
-        step_refs = [DocTokenizer, TokenFilter, TemTokenPreprocessor, TokenVectorizer]
+        step_refs = [DocTokenizer, TokenFilter, TokenVectorizer]
 
         self.steps = []
         for step_kwarg, step_ref in zip(step_kwargs, step_refs):
@@ -280,10 +280,9 @@ class SimplePipeline():
     def fit(self, X, y = None):
         if self.write_stats:
             return self.fit_with_stats(X, y)
-        targets = array(list(y))
         self.intermediate = X
         for step in self.steps:
-            self.intermediate = step.fit_transform(self.intermediate, targets)
+            self.intermediate = step.fit_transform(self.intermediate)
         self._get_vocabulary()
         return self
 
@@ -320,7 +319,7 @@ class SimplePipeline():
         self.fit(X, y)
         return self.intermediate
 
-class NbePipeline(SimplePipeline):
+class NbePreprocessor(SimplePipeline):
     """ An even simpler pipeline that skips the metric filter in SimplePipeline. """
     def __init__(self, step_kwargs, write_stats = False):
         step_refs = [DocTokenizer, TokenFilter, TokenVectorizer]
