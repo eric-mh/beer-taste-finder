@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from pymongo.uri_parser import parse_uri
 from sklearn.model_selection import ParameterGrid
 
+from numpy import array
 from itertools import chain
 
 def expand_queries(filter_query):
@@ -20,7 +21,13 @@ def expand_queries(filter_query):
 
 def mongo_loader(key = None, filter = None, feature = 'text', target = 'taste',
                  limit = None):
-    pass
+    if key == None or filter == None:
+        filter_query = None
+    else:
+        filter_query = {key: filter}
+    mongo_gen = MongoGenerator(filter_query = filter_query,
+                               key = [feature, target], limit = limit)
+    return array(list(mongo_gen)).T
 
 class MongoNames():
     """ Holds the names of the mongo database and collection. """
@@ -63,24 +70,26 @@ class MongoGenerator(object):
         return self
 
     def next(self):
+        # Checking stop iteration from limit
         if self.limit is not None:
             if self.limit == 0:
                 raise StopIteration
             else:
                 self.limit -= 1
+        # Checking if there's specific keys being queried.
         if self.key is None:
             return self.chained_cursors.next()
-        elif type(self.key) == list:
-            return [self._skey_return(self.chained_cursors.next(),key) for key in self.key]
         else:
             return self._skey_return(self.chained_cursors.next(),self.key)
 
-    def _skey_return(self,dict, key):
+    def _skey_return(self,dict, keys):
         "Special key indexer that deals with dictionaries possibly not having an entry"
-        if key in dict.keys():
-            return dict[key]
+        if type(keys) != list:
+            keys = [keys]
+        if array([(key in dict.keys()) for key in keys]).min() == False:
+            return self.next() # Skip data point of key is missing
         else:
-            return u' '
+            return [dict[key] for key in keys]
 
     def count(self):
         if self.limit is None:

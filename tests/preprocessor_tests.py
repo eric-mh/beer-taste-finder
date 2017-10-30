@@ -3,7 +3,7 @@ Unit tests for preprocessor classes in src/preprocessor.py
 Also tests model pipelines in src/model_fitting.py
 To run: make test_preprocessing
 '''
-from numpy import arange, array, ndarray
+from numpy import arange, array, ndarray, unicode_
 from numpy.ma import allequal
 from numpy import in1d
 import unittest as unittest
@@ -179,7 +179,6 @@ class TestPreprocessing(unittest.TestCase):
         pipeline = src.preprocessing.SimplePipeline(
             step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
                            {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'threshold': 0.5, 'metric': None},
                            {'use_tfidfs': False}],
             write_stats = False)
 

@@ -8,8 +8,16 @@ import unittest
 import src
 
 src.load_pipeline_model()
+src.load_modeling()
+src.load_mongo_interface()
 
 class TestPipeline(unittest.TestCase):
+    X, y = src.mongo_interface.mongo_loader(limit = 80)
+    models = {'linear' : LinearImportances,
+              'NBI' : NBImportances,
+              'NBE' : NBExceptional}
+    generic = src.pipeline_model.generic
+
     @unittest.skip("re-writing tests")
     def test_loaded(self):
         "All required modules are loaded"
@@ -17,18 +25,8 @@ class TestPipeline(unittest.TestCase):
     @unittest.skip("re-writing tests")
     def test_NBE_preprocessing(self):
         "Complete test of NBE preprocessing. "
-        mongo_gen = src.ratings_importer.MongoGenerator
-        filter_query = {'style' : 'Kvass'}
-        feature_key = 'text'; target_key = 'taste'
-        data_X = mongo_gen(filter_query = None, key = feature_key, limit = 10)
-        data_y = mongo_gen(filter_query = None, key = target_key, limit = 10)
-
-        pipeline = src.preprocessing.NbePipeline(
-            step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
-                           {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'use_tfidfs': False}],
-            write_stats = False)
-        pipeline_model = src.model_fitting.generic(pipeline = pipeline,
+        pipeline_model = generic(
+        pipeline_model = src.pipeline_model.generic(pipeline = pipeline,
                                                    X = data_X,
                                                    y = data_y,
                                                    model = src.modeling.NBExceptional)
@@ -58,7 +56,6 @@ class TestPipeline(unittest.TestCase):
         pipeline = src.preprocessing.SimplePipeline(
             step_kwargs = [{'batch_size': 1, 'n_threads': 1, 'testing': True},
                            {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'threshold': 0.5, 'metric': None},
                            {'use_tfidfs': False}],
             write_stats = False)
 
@@ -81,7 +78,6 @@ class TestPipeline(unittest.TestCase):
         pipeline = src.preprocessing.SimplePipeline(
             step_kwargs= [{'batch_size': 30, 'n_threads': 4, 'testing':True},
                            {'collection':[], 'collect_func': None, 'exclude': True},
-                           {'threshold': 0.5, 'metric': None},
                            {'use_tfidfs': False}],
             write_stats = True)
 
