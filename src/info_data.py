@@ -1,11 +1,12 @@
 """
 Stores all information about the data possibly for later use in the project.
 """
+from numpy import array
 
 class info_container():
     custom_stopwords = []
 
-    beer_styles = [
+    beer_styles = array([
         "Hefeweizen",
         "English Strong Ale",
         "Foreign / Export Stout",
@@ -22,7 +23,6 @@ class info_container():
         "Russian Imperial Stout",
         "American Amber / Red Ale",
         "American Strong Ale",
-        "Märzen / Oktoberfest",
         "American Adjunct Lager",
         "American Blonde Ale",
         "American IPA",
@@ -45,7 +45,6 @@ class info_container():
         "Bock",
         "English India Pale Ale (IPA)",
         "Altbier",
-        "Kölsch",
         "Munich Dunkel Lager",
         "Rye Beer",
         "American Pale Wheat Ale",
@@ -78,7 +77,6 @@ class info_container():
         "Keller Bier / Zwickel Bier",
         "Belgian Dark Ale",
         "Winter Warmer",
-        "Bière de Garde",
         "Japanese Rice Lager",
         "Black & Tan",
         "Irish Red Ale",
@@ -108,5 +106,4 @@ class info_container():
         "Gueuze",
         "Gose",
         "Happoshu",
-        "Sahti",
-        "Bière de Champagne / Bière Brut"]
+        "Sahti",]).tolist()
