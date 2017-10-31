@@ -123,9 +123,10 @@ class NBExceptional():
         """Calculate ROC AUC."""
         true_labels = y >= self.score_threshold_
         pred_prob = self.predict_proba(X)
+        all_true = true_labels == true_labels
         if true_labels.min() == True:
             return 1
         elif true_labels.max() == False:
             return 0
         else:
-            return roc_auc_score(true_labels, pred_prob)
+            return roc_auc_score(true_labels, pred_prob) - 0.5
